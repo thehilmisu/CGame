@@ -1,0 +1,49 @@
+# This is a list of shaders that are to be imported
+# Shaders must have the following variables:
+# 'vertex' - path to the vertex shader relative to the executable
+# 'fragment' - path to the fragment shader relative to the executable
+
+"terrain" {
+	"vertex" = "assets/shaders/terrainvert.glsl";
+	"fragment" = "assets/shaders/terrainfrag.glsl";
+}
+
+"water" {
+	"vertex" = "assets/shaders/instancedvert.glsl";
+	"fragment" = "assets/shaders/waterfrag.glsl";
+}
+
+"skybox" {
+	"vertex" = "assets/shaders/skyboxvert.glsl";
+	"fragment" = "assets/shaders/skyboxfrag.glsl";
+}
+
+"tree" {
+	"vertex" = "assets/shaders/tree-vert.glsl";
+	"fragment" = "assets/shaders/textured-frag.glsl";
+}
+
+"textured" {
+	"vertex" = "assets/shaders/vert.glsl";
+	"fragment" = "assets/shaders/textured-frag.glsl";
+}
+
+"explosion" {
+	"vertex" = "assets/shaders/explosionvert.glsl";
+	"fragment" = "assets/shaders/explosionfrag.glsl";
+}
+
+"minimap" {
+	"vertex" = "assets/shaders/vert2d.glsl";
+	"fragment" = "assets/shaders/minimapfrag.glsl";
+}
+
+"textured2d" {
+	"vertex" = "assets/shaders/vert2d.glsl";
+	"fragment" = "assets/shaders/textured-simple-frag.glsl";
+}
+
+"trail" {
+	"vertex" = "assets/shaders/trailvert.glsl";
+	"fragment" = "assets/shaders/textured-simple-frag.glsl";
+}

@@ -1,0 +1,141 @@
+Flight & Fight
+
+by Nullptr Error ("JLi69")
+Made with <3 and C++
+License: GPLv3
+
+Third Party Libraries Used:
+---------------------------
+GLFW
+glm
+glad
+nuklear
+stb_image
+fast_obj
+openal-soft
+dr_wav
+
+Font used:
+----------
+"Armata" - (c) Sorkin Type Co
+(Licensed under SIL Open Font License)
+Google Fonts: https://fonts.google.com/specimen/Armata
+
+Textures used in 'terraintextures.png':
+---------------------------------------
+
+Title: Seamless Grass Texture (grass.png)
+Author: athile
+URL: https://opengameart.org/content/seamless-grass-texture
+License: CC0
+Notes: modified to be 'more green'
+
+Title: Seamless Pattern Pack - beach_sand.png (sand.png)
+Author: n4
+URL: https://opengameart.org/content/seamless-pattern-pack-beachsandpng
+License: CC0
+Notes: cropped for use in 'terraintextures.png'
+
+Title: weathered rock pack - rock_weathered_10.png (stone.png)
+Author: para
+URL: https://opengameart.org/node/15623
+License: CC0
+
+Title: Seamless Snow Texture (snow.png)
+Author: GGBot
+URL: https://opengameart.org/content/seamless-snow-texture-0
+License: CC0
+
+Textures used in 'watermaps.png':
+---------------------------------
+
+Title: waterDUDV.png (waterdudv.png)
+Author: ThinMatrix
+URL: https://www.dropbox.com/sh/lwvm5i223cwd5ue/AADedi_y3XTQ_j2aD2oH4DLKa?dl=0
+Notes: linked from this wonderful video by ThinMatrix: https://www.youtube.com/watch?v=7T5o4vZXAvI
+
+Title: waternormals.png
+Author: Ludwig Pethrus Engström (watersimulation)
+URL: https://watersimulation.tumblr.com/post/115928250077/scrolling-normal-maps
+
+Other Third Party textures used:
+--------------------------------
+
+Title: Tree Bark Texture
+Author: Lamoot | Blender Foundation | (c) apricot.blender.org
+URL: https://opengameart.org/content/tree-bark-texture
+License: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+Notes: Used as texture for pinetreetexture.png and treetexture.png
+
+Title: 3 Tiling Shrub Textures
+Author: bart
+URL: https://opengameart.org/content/3-tiling-shrub-textures
+License: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+Notes: Used as texture pinetreetexture.png
+
+Title: LowPoly Textured Trees - Pine_Leaves.png
+Author: quaternius
+URL: https://opengameart.org/content/lowpoly-textured-trees-pineleavespng
+License: CC0
+Notes: Used as shape of branch for pinetreetexutre.png
+
+Title: Cutout plant textures 1 - Quercus_A_1024.png
+Author: lauris71
+URL: https://opengameart.org/node/10501
+License: CC-BY-SA 3.0 or GPL 3.0 (https://creativecommons.org/licenses/by-sa/3.0/)
+Notes: Used part of leaves texture for treetextures.png, also modified leaves
+texture to be 'more green'
+
+Title: rusted metal texture pack - metall010-new-tileable.png
+Author: p0ss
+URL: https://opengameart.org/node/9070
+License: GPL 2.0 or GPL 3.0 or CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+Notes: used "metall010-new-tileable.png" from "rusted metal texture pack" for 
+plane (planetexture.png, enemyplanetexture.png) and blimp (blimptexture.png) texture
+
+Title: Smoke particle assets (explosionparticle.png)
+Author: Kenney (https://www.kenney.nl)
+URL: https://opengameart.org/content/smoke-particle-assets
+License: CC0
+
+Title: Tiny Texture Pack 3
+Author: Screaming Brain Studios
+URL: https://opengameart.org/content/tiny-texture-pack-3
+License: CC0
+Notes: used "Weave_01-128x128.png" for part of balloon texture
+
+Title: Sky Box - Sunny Day
+Author: Chad Wolfe (KIIRA)
+URL: https://opengameart.org/content/sky-box-sunny-day
+License: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+Notes: used as skybox
+
+Consider all textures used to be distributed under the CC-BY-SA 4.0 license
+(https://creativecommons.org/licenses/by-sa/4.0/)
+
+Sound Effects Used:
+-------------------
+
+File: click.wav 
+Author: Kenney (www.kenney.nl)
+URL: https://opengameart.org/content/51-ui-sound-effects-buttons-switches-and-clicks
+License: CC0
+Notes: from "51 UI Sound Effects"
+
+File: explosion.wav
+Author: Marcelo Fernandez (http://www.marcelofernandezmusic.com)
+URL: https://opengameart.org/content/single-and-multi-explosion
+License: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+Notes: Taken from "Single and Multi Explosion", Modifications made: Cut out 
+multi-explosion and sped up audio and converted to wav file format
+
+File: hit.wav
+Author: Iwan 'qubodup' Gabovitch (http://opengameart.org/users/qubodup)
+URL: https://opengameart.org/content/impact
+License: CC0
+
+File: shoot.wav
+Author: KuraiWolf
+URL: https://opengameart.org/content/light-machine-gun
+License: CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+Notes: Modifications made: Cut audio and converted to wav file format

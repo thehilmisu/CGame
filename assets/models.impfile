@@ -1,0 +1,31 @@
+# This is a list of models to be imported into the game
+
+# Plane model
+"plane" {
+	"path" = "assets/models/plane.obj";
+}
+
+# Propeller model
+"propeller" {
+	"path" = "assets/models/propeller.obj";
+}
+
+# Balloon model
+"balloon" {
+	"path" = "assets/models/balloon.obj";
+}
+
+# Blimp model
+"blimp" {
+	"path" = "assets/models/blimp.obj";
+}
+
+# UFO model
+"ufo" {
+	"path" = "assets/models/ufo.obj";
+}
+
+# Bullet model
+"bullet" {
+	"path" = "assets/models/bullet.obj";
+}
