@@ -1,5 +1,5 @@
-#ifndef TERRAIN_OPENGL_H
-#define TERRAIN_OPENGL_H
+#ifndef TERRAIN_WORLD_H
+#define TERRAIN_WORLD_H
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -20,11 +20,12 @@ typedef struct {
     int x, z;
 } ChunkPos;
 
-// Terrain seed (permutations for noise) - using NoisePermutation from noise.c
+// Noise permutation
 typedef struct {
     int perm[256];
 } NoisePermutation;
 
+// Terrain seed (permutations for noise)
 typedef struct {
     NoisePermutation perms[9];
 } TerrainSeed;
@@ -56,6 +57,14 @@ typedef struct {
     int reusable_capacity;
 } ChunkTable;
 
+// LOD Manager (manages multiple chunk tables)
+typedef struct {
+    ChunkTable* lod_levels;
+    int num_lods;
+    GLuint terrain_shader;
+    GLuint terrain_texture;
+} TerrainLODManagerGL;
+
 // Functions
 TerrainSeed terrain_seed_create(int seed);
 float terrain_get_height(float x, float z, const TerrainSeed* seed);
@@ -68,17 +77,6 @@ void chunk_table_cleanup(ChunkTable* ct);
 
 ChunkMesh chunk_create(const TerrainSeed* seed, int chunkx, int chunkz, float maxheight, float chunkscale);
 void chunk_mesh_free(ChunkMesh* mesh);
-
-// Shader utilities
-GLuint shader_compile(const char* vertex_src, const char* fragment_src);
-
-// LOD Manager (manages multiple chunk tables)
-typedef struct {
-    ChunkTable* lod_levels;
-    int num_lods;
-    GLuint terrain_shader;
-    GLuint terrain_texture;
-} TerrainLODManagerGL;
 
 TerrainLODManagerGL terrain_lod_manager_create(const TerrainSeed* seed);
 void terrain_lod_manager_generate_all(TerrainLODManagerGL* lod, const TerrainSeed* seed, int center_x, int center_z);
@@ -97,7 +95,7 @@ typedef struct {
     float scale;
 } WaterManagerGL;
 
-WaterManagerGL water_manager_init();
+WaterManagerGL water_manager_init(void);
 void water_render_gl(WaterManagerGL* water, float* persp, float* view, 
                      float camera_x, float camera_y, float camera_z, float time);
 void water_cleanup_gl(WaterManagerGL* water);
@@ -111,9 +109,9 @@ typedef struct {
     GLuint cubemap_texture;
 } SkyboxGL;
 
-SkyboxGL skybox_init();
+SkyboxGL skybox_init(void);
 GLuint load_cubemap(const char* faces[6]);
 void skybox_render(SkyboxGL* skybox, float* persp, float* view);
 void skybox_cleanup(SkyboxGL* skybox);
 
-#endif // TERRAIN_OPENGL_H
+#endif // TERRAIN_WORLD_H

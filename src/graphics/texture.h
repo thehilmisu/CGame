@@ -2,10 +2,8 @@
 #define TEXTURE_H
 
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
-#define GL_SILENCE_DEPRECATION
-
+// Load a texture from file path, returns OpenGL texture ID (0 on failure)
 GLuint texture_load(const char* path);
 
-#endif
+#endif // TEXTURE_H
