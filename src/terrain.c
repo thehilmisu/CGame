@@ -385,13 +385,13 @@ WaterManagerGL water_manager_init() {
     water.range = 4;  // Like original waterrange
     water.scale = CHUNK_SZ * 32.0f * SCALE;  // Like original quadscale
     
-    // Create quad mesh
+    // Create quad mesh (slightly larger to create overlap between instances)
     float quad_vertices[] = {
         // pos (x, y, z, w)          normal (x, y, z)
-        -1.0f, 0.0f, -1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
-         1.0f, 0.0f, -1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
-         1.0f, 0.0f,  1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
-        -1.0f, 0.0f,  1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+        -1.05f, 0.0f, -1.05f, 1.0f,   0.0f, 1.0f, 0.0f,
+         1.05f, 0.0f, -1.05f, 1.0f,   0.0f, 1.0f, 0.0f,
+         1.05f, 0.0f,  1.05f, 1.0f,   0.0f, 1.0f, 0.0f,
+        -1.05f, 0.0f,  1.05f, 1.0f,   0.0f, 1.0f, 0.0f,
     };
     
     unsigned int quad_indices[] = {
@@ -456,7 +456,10 @@ void water_render_gl(WaterManagerGL* water, float* persp, float* view,
     // Draw instanced
     glBindVertexArray(water->vao);
     int instance_count = (water->range * 2 + 1) * (water->range * 2 + 1);
+    // Add polygon offset for water to reduce potential seam visibility
+    glPolygonOffset(-1.0f, -1.0f);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, instance_count);
+    glPolygonOffset(0.5f, 0.5f);  // Reset for next render
 }
 
 void water_cleanup_gl(WaterManagerGL* water) {
@@ -785,20 +788,20 @@ void terrain_lod_manager_render(TerrainLODManagerGL* lod, float* view, float* pr
         
         // Set chunksz uniform for this LOD (ct->scale is already the full chunkscale)
         glUniform1f(glGetUniformLocation(lod->terrain_shader, "chunksz"), ct->scale);
-        
+
         // Calculate max distance for this LOD (EXACTLY like original display.cpp lines 156-165)
         float max_dist;
         if (level < lod->num_lods - 1) {
             // ct->scale is already the full chunkscale (64, 128, 256...)
             float chunkscale = ct->scale * 2.0f * (float)PREC / (float)(PREC + 1);
             float range = (float)((ct->size - 1) / 2) - 0.5f;
-            float d = 8.0f * (float)level + 4.0f;  // Overlap to prevent cracks
+            float d = 200.0f * (float)level + 100.0f;  // Very aggressive overlap to eliminate visible lines
             max_dist = chunkscale * range * SCALE + d;
-            
-            glUniform1f(glGetUniformLocation(lod->terrain_shader, "minrange"), min_dist);
-            glUniform1f(glGetUniformLocation(lod->terrain_shader, "maxrange"), max_dist);
-            
-            min_dist = max_dist - 2.0f * d;  // Original overlap amount
+
+        glUniform1f(glGetUniformLocation(lod->terrain_shader, "minrange"), min_dist);
+        glUniform1f(glGetUniformLocation(lod->terrain_shader, "maxrange"), max_dist);
+
+        min_dist = max_dist - 2.0f * d;  // Original overlap amount
         } else {
             glUniform1f(glGetUniformLocation(lod->terrain_shader, "minrange"), min_dist);
             glUniform1f(glGetUniformLocation(lod->terrain_shader, "maxrange"), -1.0f);

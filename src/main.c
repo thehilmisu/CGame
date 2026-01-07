@@ -225,12 +225,16 @@ int main(void) {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glClearColor(0.53f, 0.81f, 0.92f, 1.0f);  // Sky blue
-    
+
     // Ensure we're in FILL mode (not LINE mode which would show wireframe)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
+
     // Enable smooth shading (interpolate between vertices)
     glShadeModel(GL_SMOOTH);
+
+    // Enable polygon offset to help with potential z-fighting at chunk boundaries
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(0.5f, 0.5f);
     
     // Create terrain seed (use same approach as original - random seed for variety)
     srand(time(NULL));

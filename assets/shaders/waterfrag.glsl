@@ -31,12 +31,10 @@ void main()
 {
 	vec2 dudv = (texture(watermaps, fract(fragpos.xz / 64.0) * vec2(0.25, 1.0) + vec2(0.5, 0.0)).xy - 0.5) * 2.0;
 	vec2 tc1 = fract((fragpos.xz + dudv) / 64.0 + dir1 * 0.08 * time) * vec2(0.25, 1.0);
-	//This clamp minimizes the visibility of a seam in the water but it's still
-	//visible if you look hard and close enough. I don't really have any other
-	//better ways of handling this
-	tc1.x = clamp(tc1.x, 0.005, 0.2495);
+	//Increase clamp margins to hide seams better
+	tc1.x = clamp(tc1.x, 0.01, 0.24);
 	vec2 tc2 = fract((fragpos.xz + dudv) / 96.0 + dir2 * 0.05 * time) * vec2(0.25, 1.0) + vec2(0.25, 0.0);
-	tc2.x = clamp(tc2.x, 0.2505, 0.4995);
+	tc2.x = clamp(tc2.x, 0.26, 0.49);
 	vec3 n1 = (texture(watermaps, tc1).xzy - 0.5) * 2.0,
 		 n2 = (texture(watermaps, tc2).xzy - 0.5) * 2.0;
 	vec3 normal = normalize(n1 + n2);

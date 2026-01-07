@@ -76,7 +76,9 @@ void main()
 	float range = max(abs(fragpos.x - center.x), abs(fragpos.z - center.y));
 	//We discard fragments that are beyond a certain range to prevent overlap
 	//with terrain of lower level of detail
-	if((range > maxrange && maxrange > 0.0) || range < minrange)
+	//Add small epsilon to handle floating point precision
+	const float EPSILON = 2.0f;
+	if((range > maxrange + EPSILON && maxrange > 0.0) || range < minrange - EPSILON)
 		discard;
 
 	color = getcolor() * lighting;

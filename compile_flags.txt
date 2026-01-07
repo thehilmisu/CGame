@@ -1,8 +1,5 @@
 -I.
--Iinclude/glad/glad.h
--Iinclude/KHR/khrplatform.h
--Iinclude/stb_image/stb_image.h
+-Iinclude
 -I/opt/homebrew/include
--I/opt/homebrew/opt/openal-soft/include
 -Wall
 -Wextra

@@ -1,8 +1,7 @@
-# Makefile for OpenGL terrain demo (C version using original tech stack)
 
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 -std=c99
-SRC_DIR = .
+SRC_DIR = src
 BUILD_DIR = build
 TARGET = Game
 
