@@ -80,7 +80,7 @@ void chunk_mesh_free(ChunkMesh* mesh);
 
 TerrainLODManagerGL terrain_lod_manager_create(const TerrainSeed* seed);
 void terrain_lod_manager_generate_all(TerrainLODManagerGL* lod, const TerrainSeed* seed, int center_x, int center_z);
-void terrain_lod_manager_update(TerrainLODManagerGL* lod, const TerrainSeed* seed, int center_x, int center_z);
+void terrain_lod_manager_update(TerrainLODManagerGL* lod, const TerrainSeed* seed, float camera_x, float camera_z);
 void terrain_lod_manager_render(TerrainLODManagerGL* lod, float* view, float* proj, 
                                 float camera_x, float camera_y, float camera_z, float time);
 void terrain_lod_manager_cleanup(TerrainLODManagerGL* lod);

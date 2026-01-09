@@ -444,15 +444,11 @@ static void chunk_table_generate_new_chunks(ChunkTable* ct, const TerrainSeed* s
     ct->center = (ChunkPos){ix, iz};
 }
 
-void terrain_lod_manager_update(TerrainLODManagerGL* lod, const TerrainSeed* seed, int center_x, int center_z) {
-    (void)center_x;
-    (void)center_z;
-    
-    // Update all LOD levels incrementally (like original game.cpp lines 103-104)
-    // Each LOD level processes ONE chunk per frame
+void terrain_lod_manager_update(TerrainLODManagerGL* lod, const TerrainSeed* seed, float camera_x, float camera_z) {
+    // Update all LOD levels incrementally - like C++ game.cpp lines 102-104
+    // Each LOD level processes ONE chunk per frame for smooth generation
     for (int i = 0; i < lod->num_lods; i++) {
-        chunk_table_generate_new_chunks(&lod->lod_levels[i], seed, 
-                                       (float)center_z, (float)center_x);
+        chunk_table_generate_new_chunks(&lod->lod_levels[i], seed, camera_x, camera_z);
     }
 }
 
@@ -474,10 +470,10 @@ void terrain_lod_manager_render(TerrainLODManagerGL* lod, float* view, float* pr
     glBindTexture(GL_TEXTURE_2D, lod->terrain_texture);
     glUniform1i(glGetUniformLocation(lod->terrain_shader, "terraintexture"), 0);
     
-    // Calculate center for LOD distance-based rendering (like original)
+    // Calculate center for LOD distance-based rendering - like C++ display.cpp
     // NOTE: In original, glm::vec2(center.z, center.x) - z is used for x!
     ChunkPos center = lod->lod_levels[0].center;
-    // lod_levels[0].scale is already the full chunkscale (64)
+    // Must use PREC/(PREC+1) factor to match chunk positioning
     float center_world_x = (float)center.z * (float)PREC / (float)(PREC + 1) * lod->lod_levels[0].scale * SCALE * 2.0f;
     float center_world_z = (float)center.x * (float)PREC / (float)(PREC + 1) * lod->lod_levels[0].scale * SCALE * 2.0f;
     glUniform2f(glGetUniformLocation(lod->terrain_shader, "center"), center_world_x, center_world_z);
@@ -491,19 +487,19 @@ void terrain_lod_manager_render(TerrainLODManagerGL* lod, float* view, float* pr
         // Set chunksz uniform for this LOD (ct->scale is already the full chunkscale)
         glUniform1f(glGetUniformLocation(lod->terrain_shader, "chunksz"), ct->scale);
 
-        // Calculate max distance for this LOD (EXACTLY like original display.cpp lines 156-165)
+        // Calculate max distance for this LOD - EXACTLY like C++ display.cpp lines 155-175
         float max_dist;
         if (level < lod->num_lods - 1) {
-            // ct->scale is already the full chunkscale (64, 128, 256...)
             float chunkscale = ct->scale * 2.0f * (float)PREC / (float)(PREC + 1);
             float range = (float)((ct->size - 1) / 2) - 0.5f;
-            float d = 200.0f * (float)level + 100.0f;  // Very aggressive overlap to eliminate visible lines
+            // Slight overlap to mitigate cracks - EXACTLY like C++: 8.0f * i + 4.0f
+            float d = 8.0f * (float)level + 4.0f;
             max_dist = chunkscale * range * SCALE + d;
 
-        glUniform1f(glGetUniformLocation(lod->terrain_shader, "minrange"), min_dist);
-        glUniform1f(glGetUniformLocation(lod->terrain_shader, "maxrange"), max_dist);
+            glUniform1f(glGetUniformLocation(lod->terrain_shader, "minrange"), min_dist);
+            glUniform1f(glGetUniformLocation(lod->terrain_shader, "maxrange"), max_dist);
 
-        min_dist = max_dist - 2.0f * d;  // Original overlap amount
+            min_dist = max_dist - 2.0f * d;
         } else {
             glUniform1f(glGetUniformLocation(lod->terrain_shader, "minrange"), min_dist);
             glUniform1f(glGetUniformLocation(lod->terrain_shader, "maxrange"), -1.0f);
@@ -518,29 +514,30 @@ void terrain_lod_manager_render(TerrainLODManagerGL* lod, float* view, float* pr
         else { test_color[0] = 1.0f; test_color[1] = 0.0f; test_color[2] = 1.0f; } // Magenta
         glUniform3fv(glGetUniformLocation(lod->terrain_shader, "testcolor"), 1, test_color);
         
-        // CRITICAL: For LOD levels > 0, skip inner chunks (like original chunktable.cpp lines 233-235)
-        // This prevents z-fighting and glitching between different LOD levels
+        // CRITICAL: For LOD levels > 0, skip inner chunks - like C++ display.cpp line 180-181
+        // and chunktable.cpp lines 233-235
         int minrange = 0;
         if (level > 0) {
-            // Calculate minrange like original display.cpp line 180
-            minrange = lod->lod_levels[level - 1].size / 2 / 2;  // range / lodscale
-            if (minrange < 1) minrange = 1;
+            // C++: int minrange = chunktables[i - 1].range() / int(lodscale);
+            // then passes (minrange - 1) to draw()
+            int prev_range = (lod->lod_levels[level - 1].size - 1) / 2;
+            minrange = prev_range / (int)LOD_SCALE - 1;  // The -1 is from C++ display.cpp line 181
+            if (minrange < 0) minrange = 0;
         }
-        
+
         // Draw all chunks in this LOD level
         for (unsigned int i = 0; i < ct->chunk_count; i++) {
             ChunkPos pos = ct->positions[i];
-            
-            // CRITICAL: Skip inner chunks for LOD > 0 (like original chunktable.cpp lines 233-235)
+
+            // CRITICAL: Skip inner chunks for LOD > 0 - like C++ chunktable.cpp lines 233-235
             if (level > 0) {
                 if (abs(pos.x - center.x) < minrange && abs(pos.z - center.z) < minrange) {
                     continue;  // Skip this chunk - it's covered by a higher detail LOD
                 }
             }
             
-            // Calculate chunk position (EXACTLY like original chunktable.cpp draw())
-            // NOTE: In original, p.z is used for x and p.x for z!
-            // ct->scale is already the full chunkscale (64, 128, 256...)
+            // Calculate chunk position - EXACTLY like C++ chunktable.cpp lines 201-202
+            // The PREC/(PREC+1) factor is critical for seamless tiling with the shader
             float x = (float)pos.z * ct->scale * 2.0f * (float)PREC / (float)(PREC + 1);
             float z = (float)pos.x * ct->scale * 2.0f * (float)PREC / (float)(PREC + 1);
             

@@ -4,7 +4,7 @@
 // Window settings
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-#define WINDOW_TITLE "Terrain Demo - OpenGL"
+#define WINDOW_TITLE "Terrain Generation"
 
 // Nuklear buffer sizes
 #define MAX_VERTEX_BUFFER (512 * 1024)

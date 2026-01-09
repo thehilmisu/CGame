@@ -125,9 +125,6 @@ static void engine_setup_gui(Engine* engine, GLFWwindow* window) {
 }
 
 Engine* engine_init(void) {
-    printf("Terrain Demo - OpenGL 3.3\n");
-    printf("==========================\n\n");
-    
     // Initialize GLFW
     if (!glfwInit()) {
         fprintf(stderr, "Failed to initialize GLFW\n");
@@ -188,16 +185,6 @@ Engine* engine_init(void) {
     // Setup GUI
     engine_setup_gui(engine, window);
     
-    printf("\nControls:\n");
-    printf("  WASD - Move\n");
-    printf("  Mouse - Look\n");
-    printf("  Space - Up\n");
-    printf("  Shift - Down\n");
-    printf("  Ctrl - Fast (5x)\n");
-    printf("  Alt - Slow (0.2x)\n");
-    printf("  R - Reset to water level\n");
-    printf("  ESC - Exit\n\n");
-    
     return engine;
 }
 
@@ -226,11 +213,9 @@ void engine_run(Engine* engine) {
         window_get_size(engine->window, &width, &height);
         camera_update_projection(camera, width, height, proj_matrix);
         
-        // Update terrain LOD based on camera position
-        float chunksz = CHUNK_SZ * (float)PREC / (float)(PREC + 1);
-        int cam_chunk_x = (int)floorf((camera->pos_z + chunksz * SCALE) / (chunksz * SCALE * 2.0f));
-        int cam_chunk_z = (int)floorf((camera->pos_x + chunksz * SCALE) / (chunksz * SCALE * 2.0f));
-        terrain_lod_manager_update(engine->terrain, engine->seed, cam_chunk_x, cam_chunk_z);
+        // Update terrain - generate new chunks as camera moves (infinite terrain)
+        // Pass raw camera world position - the update function calculates chunk positions
+        terrain_lod_manager_update(engine->terrain, engine->seed, camera->pos_x, camera->pos_z);
         
         // Render skybox first
         skybox_render(engine->skybox, proj_matrix, view_matrix);
