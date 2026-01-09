@@ -3,12 +3,7 @@
 #include "../graphics/camera.h"
 #include "../graphics/renderer.h"
 #include "../graphics/state.h"
-#include "../graphics/shader.h"
 #include "../world/terrain.h"
-#include "../world/water.h"
-#include "../world/skybox.h"
-#include "../graphics/texture.h"
-#include "../file_ops.h"
 #include "../gui.h"
 #include "../config.h"
 #include <stdio.h>
@@ -16,7 +11,6 @@
 #include <time.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <math.h>
 
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
@@ -41,7 +35,7 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     (void)window;
-    printf("Mouse Callback works!!");
+    
     
     if (first_mouse) {
         last_mouse_x = xpos;
@@ -50,7 +44,7 @@ static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
         return;
     }
     
-    Camera* camera = glfwGetWindowUserPointer(window);
+    Camera* camera = glfwGetMonitorUserPointer(window);
     if (!camera) return;
     
     float xoffset = (float)(xpos - last_mouse_x);
@@ -69,36 +63,6 @@ static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     if (camera->pitch < -89.0f) camera->pitch = -89.0f;
 }
 
-// Setup GlobalVals UBO for viewdist - like C++ game.cpp initGlobalValUniformBlock()
-static void setup_global_vals_ubo(GLuint terrain_shader, GLuint water_shader) {
-    // Calculate viewdist like C++: CHUNK_SZ * SCALE * 2.0f * RANGE * pow(LOD_SCALE, MAX_LOD - 2)
-    float viewdist = CHUNK_SZ * SCALE * 2.0f * (float)RANGE * powf(LOD_SCALE, MAX_LOD - 2);
-
-    float global_vals[] = { viewdist };
-
-    GLuint ubo;
-    glGenBuffers(1, &ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(global_vals), global_vals, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    // Bind UBO to binding point 0
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
-
-    // Set uniform block binding for terrain shader
-    GLuint terrain_block_index = glGetUniformBlockIndex(terrain_shader, "GlobalVals");
-    if (terrain_block_index != GL_INVALID_INDEX) {
-        glUniformBlockBinding(terrain_shader, terrain_block_index, 0);
-    }
-
-    // Set uniform block binding for water shader
-    GLuint water_block_index = glGetUniformBlockIndex(water_shader, "GlobalVals");
-    if (water_block_index != GL_INVALID_INDEX) {
-        glUniformBlockBinding(water_shader, water_block_index, 0);
-    }
-
-    printf("GlobalVals UBO initialized (viewdist=%.1f)\n", viewdist);
-}
 
 static void engine_setup_world(Engine* engine) {
     // Create terrain seed
@@ -109,24 +73,9 @@ static void engine_setup_world(Engine* engine) {
     engine->seed = malloc(sizeof(TerrainSeed));
     *engine->seed = terrain_seed_create(random_seed);
 
-    // Load terrain shader and texture
-    const char* vertex_shader_src = load_shader_source("assets/shaders/terrainvert.glsl");
-    const char* fragment_shader_src = load_shader_source("assets/shaders/terrainfrag.glsl");
-    GLuint terrain_shader = shader_compile(vertex_shader_src, fragment_shader_src);
-    GLuint terrain_texture = texture_load("assets/textures/terraintextures.png");
-
-    free((void*)vertex_shader_src);
-    free((void*)fragment_shader_src);
-
-    if (terrain_texture == 0) {
-        fprintf(stderr, "Warning: Failed to load terrain texture, using fallback colors\n");
-    }
-
     // Create terrain LOD manager
     engine->terrain = malloc(sizeof(TerrainLODManagerGL));
     *engine->terrain = terrain_lod_manager_create(engine->seed);
-    engine->terrain->terrain_shader = terrain_shader;
-    engine->terrain->terrain_texture = terrain_texture;
 
     printf("\nInitializing terrain with %d LOD levels...\n", MAX_LOD);
     printf("Generating terrain chunks...\n");
@@ -145,8 +94,6 @@ static void engine_setup_world(Engine* engine) {
     *engine->skybox = skybox_init();
     printf("Skybox initialized\n");
 
-    // Setup GlobalVals UBO for viewdist (used by terrain and water shaders for fog)
-    setup_global_vals_ubo(terrain_shader, engine->water->shader);
 }
 
 static void engine_setup_gui(Engine* engine, GLFWwindow* window) {

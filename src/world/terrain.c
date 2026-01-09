@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include "../file_ops.h"
 
+#include "../graphics/texture.h"
+#include "../graphics/shader.h"
 #include <stb_image/stb_image.h>
 
 // Use proper noise implementation from noise.c (working implementation)
@@ -331,8 +333,53 @@ void chunk_mesh_free(ChunkMesh* mesh) {
 
 // ===== LOD Manager =====
 
+// Setup GlobalVals UBO for viewdist - like C++ game.cpp initGlobalValUniformBlock()
+static void setup_global_vals_ubo(GLuint terrain_shader, GLuint water_shader) {
+    // Calculate viewdist like C++: CHUNK_SZ * SCALE * 2.0f * RANGE * pow(LOD_SCALE, MAX_LOD - 2)
+    float viewdist = CHUNK_SZ * SCALE * 2.0f * (float)RANGE * powf(LOD_SCALE, MAX_LOD - 2);
+
+    float global_vals[] = { viewdist };
+
+    GLuint ubo;
+    glGenBuffers(1, &ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(global_vals), global_vals, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // Bind UBO to binding point 0
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
+
+    // Set uniform block binding for terrain shader
+    GLuint terrain_block_index = glGetUniformBlockIndex(terrain_shader, "GlobalVals");
+    if (terrain_block_index != GL_INVALID_INDEX) {
+        glUniformBlockBinding(terrain_shader, terrain_block_index, 0);
+    }
+
+    // Set uniform block binding for water shader
+    GLuint water_block_index = glGetUniformBlockIndex(water_shader, "GlobalVals");
+    if (water_block_index != GL_INVALID_INDEX) {
+        glUniformBlockBinding(water_shader, water_block_index, 0);
+    }
+
+    printf("GlobalVals UBO initialized (viewdist=%.1f)\n", viewdist);
+}
+
 TerrainLODManagerGL terrain_lod_manager_create(const TerrainSeed* seed) {
-    (void)seed;  // Not used in initialization
+
+    // Load terrain shader and texture
+    const char* vertex_shader_src = load_shader_source("assets/shaders/terrainvert.glsl");
+    const char* fragment_shader_src = load_shader_source("assets/shaders/terrainfrag.glsl");
+    GLuint terrain_shader = shader_compile(vertex_shader_src, fragment_shader_src);
+    GLuint terrain_texture = texture_load("assets/textures/terraintextures.png");
+
+
+    free((void*)vertex_shader_src);
+    free((void*)fragment_shader_src);
+
+    if (terrain_texture == 0) {
+        fprintf(stderr, "Warning: Failed to load terrain texture, using fallback colors\n");
+    }
+
     TerrainLODManagerGL lod;
     lod.num_lods = MAX_LOD;
     lod.lod_levels = (ChunkTable*)malloc(MAX_LOD * sizeof(ChunkTable));
@@ -350,8 +397,8 @@ TerrainLODManagerGL terrain_lod_manager_create(const TerrainSeed* seed) {
     }
     
     // Load terrain shader and texture (will be done in main for now)
-    lod.terrain_shader = 0;
-    lod.terrain_texture = 0;
+    lod.terrain_shader = terrain_shader;
+    lod.terrain_texture = terrain_texture;
     
     return lod;
 }

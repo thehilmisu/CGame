@@ -81,7 +81,7 @@ SkyboxGL skybox_init(void) {
     };
 
     skybox.cubemap_texture = load_cubemap(cubemap_faces);
-        printf("Skybox initialized\n\n");
+    printf("Skybox initialized\n\n");
 
     return skybox;
 }
