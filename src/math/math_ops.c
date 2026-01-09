@@ -47,6 +47,23 @@ void mat4_translate(float* m, float x, float y, float z) {
     m[14] = z;
 }
 
+void mat4_rotate_z(float* m, float angle) {
+    mat4_identity(m);
+    float c = cosf(angle);
+    float s = sinf(angle);
+    m[0] = c;
+    m[1] = s;
+    m[4] = -s;
+    m[5] = c;
+}
+
+void mat4_scale(float* m, float sx, float sy, float sz) {
+    mat4_identity(m);
+    m[0] = sx;
+    m[5] = sy;
+    m[10] = sz;
+}
+
 void mat4_perspective(float* m, float fov_degrees, float aspect, float near, float far) {
     memset(m, 0, 16 * sizeof(float));
     float fov_rad = fov_degrees * M_PI / 180.0f;

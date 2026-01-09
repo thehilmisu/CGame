@@ -19,7 +19,7 @@ uniform float time;
 uniform vec3 lightdir;
 uniform vec3 camerapos;
 
-const float FOG_DIST = 10000.0;
+const float FOG_DIST = 8000.0;
 const float WATER_FOG_DIST = 128.0;
 
 const float angle1 = -0.5;

@@ -2,9 +2,11 @@
 #include "../window/window.h"
 #include "../graphics/renderer.h"
 #include "../graphics/state.h"
+#include "../graphics/shader.h"
 #include "../world/terrain.h"
 #include "../gui.h"
 #include "../config.h"
+#include "../file_ops.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -81,7 +83,7 @@ static void engine_setup_world(Engine* engine) {
 
 static void engine_setup_gui(Engine* engine, GLFWwindow* window) {
     nk_glfw3_init(&engine->nk_glfw, window, NK_GLFW3_DEFAULT);
-    
+
     struct nk_font_atlas *atlas;
     nk_glfw3_font_stash_begin(&engine->nk_glfw, &atlas);
     nk_glfw3_font_stash_end(&engine->nk_glfw);
@@ -89,6 +91,39 @@ static void engine_setup_gui(Engine* engine, GLFWwindow* window) {
     printf("Initializin GUI ...\n");
     engine->gui_debug_elements = malloc(sizeof(DebugElements));
     *engine->gui_debug_elements = gui_debug_elements_init();
+}
+
+static void engine_setup_entities(Engine* engine) {
+    printf("Initializing entity system...\n");
+
+    // Create entity manager
+    engine->entity_manager = entity_manager_create();
+
+    // Load and compile model shaders
+    const char* model_vert = load_shader_source("assets/shaders/modelvert.glsl");
+    const char* model_frag = load_shader_source("assets/shaders/modelfrag.glsl");
+    engine->entity_manager->model_shader = shader_compile(model_vert, model_frag);
+
+    // Load player model
+    Model* player_model = entity_manager_load_model(
+        engine->entity_manager,
+        "assets/models/plane.obj"
+    );
+
+    if (player_model) {
+        // Create player entity at a visible position
+        entity_manager_create_entity(
+            engine->entity_manager,
+            ENTITY_TYPE_PLAYER,
+            player_model,
+            (float[]){0.0f, 50.0f, 0.0f},   // position (above terrain)
+            (float[]){0.0f, 0.0f, 0.0f},    // rotation
+            (float[]){1.0f, 1.0f, 1.0f}     // scale (make it bigger)
+        );
+        printf("Player entity created\n");
+    }
+
+    printf("Entity system initialized\n");
 }
 
 Engine* engine_init(void) {
@@ -148,10 +183,13 @@ Engine* engine_init(void) {
     
     // Setup game world
     engine_setup_world(engine);
-    
+
     // Setup GUI
     engine_setup_gui(engine, window);
-    
+
+    // Setup entity system
+    engine_setup_entities(engine);
+
     return engine;
 }
 
@@ -197,7 +235,12 @@ void engine_run(Engine* engine) {
         // Update terrain - generate new chunks as camera moves (infinite terrain)
         // Pass raw camera world position - the update function calculates chunk positions
         terrain_lod_manager_update(engine->terrain, engine->seed, camera->pos_x, camera->pos_z);
-        
+
+        // Update entities
+        if (engine->entity_manager) {
+            entity_manager_update(engine->entity_manager, dt);
+        }
+
         // Render skybox first
         skybox_render(engine->skybox, proj_matrix, view_matrix);
         
@@ -210,7 +253,14 @@ void engine_run(Engine* engine) {
         terrain_lod_manager_render(engine->terrain, view_matrix, proj_matrix,
                                    camera->pos_x, camera->pos_y, camera->pos_z,
                                    (float)current_time);
-        
+
+        // Render entities (opaque objects)
+        if (engine->entity_manager) {
+            state_restore_defaults();
+            entity_manager_render(engine->entity_manager, view_matrix, proj_matrix,
+                                camera->pos_x, camera->pos_y, camera->pos_z);
+        }
+
         // Render water with transparency
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
@@ -245,7 +295,12 @@ void engine_run(Engine* engine) {
 
 void engine_cleanup(Engine* engine) {
     printf("\nCleaning up...\n");
-    
+
+    // Cleanup entities
+    if (engine->entity_manager) {
+        entity_manager_cleanup(engine->entity_manager);
+    }
+
     // Cleanup world
     if (engine->terrain) {
         terrain_lod_manager_cleanup(engine->terrain);
@@ -262,19 +317,19 @@ void engine_cleanup(Engine* engine) {
     if (engine->seed) {
         free(engine->seed);
     }
-    
+
     // Cleanup camera
     if (engine->camera) {
         free(engine->camera);
     }
-    
+
     // Cleanup GUI
     nk_glfw3_shutdown(&engine->nk_glfw);
-    
+
     // Cleanup window
     glfwTerminate();
-    
+
     free(engine);
-    
+
     printf("Done!\n");
 }

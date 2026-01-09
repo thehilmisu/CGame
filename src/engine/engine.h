@@ -18,6 +18,7 @@
 #include "../graphics/camera.h"
 #include "../gui.h"
 #include "../world/terrain.h"
+#include "../entities/entity_manager.h"
 #include <stdbool.h>
 
 typedef struct {
@@ -41,6 +42,10 @@ typedef struct {
     // Mouse Position
     double mouse_x;
     double mouse_y;
+
+
+    // Entities
+    EntityManager* entity_manager;
     
 } Engine;
 

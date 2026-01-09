@@ -18,7 +18,7 @@ static void init_permutation(NoisePermutation* perm, int seed) {
     // EXACTLY like original rng::createPermutation (noise.cpp lines 14-30)
     int values[256];
     int count = 256;
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < count; i++) {
         values[i] = i;
     }
     
@@ -244,7 +244,7 @@ void chunk_table_cleanup(ChunkTable* ct) {
     }
 }
 
-// Compress normal to 2 floats (spherical coordinates) - like original
+// Compress normal to 2 floats (spherical coordinates)
 static void compress_normal(float nx, float ny, float nz, float* out_x, float* out_y) {
     // Convert to spherical coordinates
     float theta = atan2f(nz, nx);
@@ -256,7 +256,6 @@ static void compress_normal(float nx, float ny, float nz, float* out_x, float* o
 ChunkMesh chunk_create(const TerrainSeed* seed, int chunkx, int chunkz, float maxheight, float chunkscale) {
     ChunkMesh mesh;
     mesh.vertex_count = (PREC + 1) * (PREC + 1);
-    // EXACTLY like original: only height (1) + compressed normal (2) = 3 floats per vertex!
     mesh.vertices = (float*)malloc(mesh.vertex_count * 3 * sizeof(float));
     mesh.pos = (ChunkPos){chunkx, chunkz};
     
@@ -551,15 +550,6 @@ void terrain_lod_manager_render(TerrainLODManagerGL* lod, float* view, float* pr
             glUniform1f(glGetUniformLocation(lod->terrain_shader, "minrange"), min_dist);
             glUniform1f(glGetUniformLocation(lod->terrain_shader, "maxrange"), -1.0f);
         }
-        
-        // Debug: set different color for each LOD level
-        float test_color[3];
-        if (level == 0) { test_color[0] = 0.0f; test_color[1] = 1.0f; test_color[2] = 0.0f; } // Green
-        else if (level == 1) { test_color[0] = 0.0f; test_color[1] = 0.0f; test_color[2] = 1.0f; } // Blue
-        else if (level == 2) { test_color[0] = 1.0f; test_color[1] = 0.0f; test_color[2] = 0.0f; } // Red
-        else if (level == 3) { test_color[0] = 0.0f; test_color[1] = 1.0f; test_color[2] = 1.0f; } // Cyan
-        else { test_color[0] = 1.0f; test_color[1] = 0.0f; test_color[2] = 1.0f; } // Magenta
-        glUniform3fv(glGetUniformLocation(lod->terrain_shader, "testcolor"), 1, test_color);
         
         // CRITICAL: For LOD levels > 0, skip inner chunks - like C++ display.cpp line 180-181
         // and chunktable.cpp lines 233-235

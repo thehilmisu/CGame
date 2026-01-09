@@ -21,7 +21,6 @@ void main()
 	int ix = gl_VertexID - int(gl_VertexID / (prec + 1)) * (prec + 1);
 	int iz = int(gl_VertexID / (prec + 1));
 
-	// Vertex positioning formula - must match C++ exactly for seamless tiling
 	float halfinc = chunksz / float(prec + 1);
 	float vx = -chunksz + float(ix) / float(prec + 1) * 2.0 * chunksz + halfinc;
 	float vz = -chunksz + float(iz) / float(prec + 1) * 2.0 * chunksz + halfinc;
@@ -31,5 +30,6 @@ void main()
 	fragpos = (transform * pos).xyz;
 
 	vec3 normal = vec3(cos(norm.y) * cos(norm.x), sin(norm.y), cos(norm.y) * sin(norm.x));
+
 	lighting = max(-dot(lightdir, normal), 0.0) * 0.6 + 0.4;
 }
