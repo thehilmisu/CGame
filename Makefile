@@ -15,6 +15,8 @@ INCLUDES = -I$(SRC_DIR) \
            -Iinclude \
            -Iinclude/glad \
            -Iinclude/nuklear \
+           -Iinclude/stb_image \
+           -Iinclude/fast_obj \
            $(shell pkg-config --cflags glfw3)
 
 # Library paths and libraries
@@ -28,6 +30,7 @@ SOURCES = $(SRC_DIR)/main.c \
           $(SRC_DIR)/graphics/texture.c \
           $(SRC_DIR)/stb_impl.c \
           $(SRC_DIR)/nuklear_impl.c \
+          $(SRC_DIR)/fast_obj_impl.c \
           $(SRC_DIR)/gui.c \
           $(SRC_DIR)/math/math_ops.c \
           $(SRC_DIR)/window/window.c \
@@ -48,6 +51,7 @@ OBJECTS = $(BUILD_DIR)/main.o \
           $(BUILD_DIR)/graphics/texture.o \
           $(BUILD_DIR)/stb_impl.o \
           $(BUILD_DIR)/nuklear_impl.o \
+          $(BUILD_DIR)/fast_obj_impl.o \
           $(BUILD_DIR)/gui.o \
           $(BUILD_DIR)/math/math_ops.o \
           $(BUILD_DIR)/window/window.o \

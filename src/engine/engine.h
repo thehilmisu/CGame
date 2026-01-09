@@ -32,7 +32,7 @@ typedef struct {
     
     // GUI
     struct nk_glfw nk_glfw;
-    FPSCounter fps_counter;
+    DebugElements* gui_debug_elements;
     
     // Timing
     double last_time;

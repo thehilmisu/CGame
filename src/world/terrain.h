@@ -91,6 +91,7 @@ typedef struct {
     GLuint vbo;
     GLuint ibo;
     GLuint shader;
+    GLuint texture;  // watermaps texture for normal mapping
     int range;
     float scale;
 } WaterManagerGL;

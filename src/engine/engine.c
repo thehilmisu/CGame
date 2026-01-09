@@ -41,6 +41,7 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     (void)window;
+    printf("Mouse Callback works!!");
     
     if (first_mouse) {
         last_mouse_x = xpos;
@@ -68,50 +69,84 @@ static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     if (camera->pitch < -89.0f) camera->pitch = -89.0f;
 }
 
+// Setup GlobalVals UBO for viewdist - like C++ game.cpp initGlobalValUniformBlock()
+static void setup_global_vals_ubo(GLuint terrain_shader, GLuint water_shader) {
+    // Calculate viewdist like C++: CHUNK_SZ * SCALE * 2.0f * RANGE * pow(LOD_SCALE, MAX_LOD - 2)
+    float viewdist = CHUNK_SZ * SCALE * 2.0f * (float)RANGE * powf(LOD_SCALE, MAX_LOD - 2);
+
+    float global_vals[] = { viewdist };
+
+    GLuint ubo;
+    glGenBuffers(1, &ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(global_vals), global_vals, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // Bind UBO to binding point 0
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
+
+    // Set uniform block binding for terrain shader
+    GLuint terrain_block_index = glGetUniformBlockIndex(terrain_shader, "GlobalVals");
+    if (terrain_block_index != GL_INVALID_INDEX) {
+        glUniformBlockBinding(terrain_shader, terrain_block_index, 0);
+    }
+
+    // Set uniform block binding for water shader
+    GLuint water_block_index = glGetUniformBlockIndex(water_shader, "GlobalVals");
+    if (water_block_index != GL_INVALID_INDEX) {
+        glUniformBlockBinding(water_shader, water_block_index, 0);
+    }
+
+    printf("GlobalVals UBO initialized (viewdist=%.1f)\n", viewdist);
+}
+
 static void engine_setup_world(Engine* engine) {
     // Create terrain seed
     srand(time(NULL));
     int random_seed = rand();
     printf("Using terrain seed: %d\n", random_seed);
-    
+
     engine->seed = malloc(sizeof(TerrainSeed));
     *engine->seed = terrain_seed_create(random_seed);
-    
+
     // Load terrain shader and texture
     const char* vertex_shader_src = load_shader_source("assets/shaders/terrainvert.glsl");
     const char* fragment_shader_src = load_shader_source("assets/shaders/terrainfrag.glsl");
     GLuint terrain_shader = shader_compile(vertex_shader_src, fragment_shader_src);
     GLuint terrain_texture = texture_load("assets/textures/terraintextures.png");
-    
+
     free((void*)vertex_shader_src);
     free((void*)fragment_shader_src);
-    
+
     if (terrain_texture == 0) {
         fprintf(stderr, "Warning: Failed to load terrain texture, using fallback colors\n");
     }
-    
+
     // Create terrain LOD manager
     engine->terrain = malloc(sizeof(TerrainLODManagerGL));
     *engine->terrain = terrain_lod_manager_create(engine->seed);
     engine->terrain->terrain_shader = terrain_shader;
     engine->terrain->terrain_texture = terrain_texture;
-    
+
     printf("\nInitializing terrain with %d LOD levels...\n", MAX_LOD);
     printf("Generating terrain chunks...\n");
     terrain_lod_manager_generate_all(engine->terrain, engine->seed, 0, 0);
     printf("Terrain initialized\n");
-    
+
     // Create water manager
     printf("Initializing water...\n");
     engine->water = malloc(sizeof(WaterManagerGL));
     *engine->water = water_manager_init();
     printf("Water initialized\n");
-    
+
     // Create skybox
     printf("Initializing skybox...\n");
     engine->skybox = malloc(sizeof(SkyboxGL));
     *engine->skybox = skybox_init();
     printf("Skybox initialized\n");
+
+    // Setup GlobalVals UBO for viewdist (used by terrain and water shaders for fog)
+    setup_global_vals_ubo(terrain_shader, engine->water->shader);
 }
 
 static void engine_setup_gui(Engine* engine, GLFWwindow* window) {
@@ -120,8 +155,10 @@ static void engine_setup_gui(Engine* engine, GLFWwindow* window) {
     struct nk_font_atlas *atlas;
     nk_glfw3_font_stash_begin(&engine->nk_glfw, &atlas);
     nk_glfw3_font_stash_end(&engine->nk_glfw);
-    
-    fps_counter_init(&engine->fps_counter);
+
+    printf("Initializin GUI ...\n");
+    engine->gui_debug_elements = malloc(sizeof(DebugElements));
+    *engine->gui_debug_elements = gui_debug_elements_init();
 }
 
 Engine* engine_init(void) {
@@ -196,8 +233,12 @@ void engine_run(Engine* engine) {
         float dt = (float)(current_time - engine->last_time);
         engine->last_time = current_time;
         
-        // Update FPS counter
-        fps_counter_update(&engine->fps_counter, current_time);
+        // Update Debug Elements
+        fps_counter_update(engine->gui_debug_elements, current_time);
+        engine->gui_debug_elements->camera_pos_x = camera->pos_x;
+        engine->gui_debug_elements->camera_pos_y = camera->pos_y;
+        engine->gui_debug_elements->camera_pos_z = camera->pos_z;
+        
         
         // Process input
         camera_process_input(camera, engine->window, dt);
@@ -250,7 +291,7 @@ void engine_run(Engine* engine) {
         nk_glfw3_new_frame(&engine->nk_glfw);
         
         window_get_size(engine->window, &width, &height);
-        gui_render_fps(&engine->nk_glfw.ctx, &engine->fps_counter, width, height);
+        gui_render_debug_elements(&engine->nk_glfw.ctx, engine->gui_debug_elements, width, height);
         
         nk_glfw3_render(&engine->nk_glfw, NK_ANTI_ALIASING_ON,
                        MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);

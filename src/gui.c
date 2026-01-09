@@ -1,39 +1,39 @@
 #include "gui.h"
 #include <stdio.h>
 
-void fps_counter_init(FPSCounter* counter) {
-    counter->fps = 0.0f;
-    counter->frame_time = 0.0f;
-    counter->frame_count = 0;
-    counter->last_time = 0.0;
+DebugElements gui_debug_elements_init() {
+
+    DebugElements elements = {0};
+
+    return elements;
 }
 
-void fps_counter_update(FPSCounter* counter, double current_time) {
-    counter->frame_count++;
+void fps_counter_update(DebugElements* elements, double current_time) {
+    elements->frame_count++;
     
-    if (counter->last_time == 0.0) {
-        counter->last_time = current_time;
+    if (elements->last_time == 0.0) {
+        elements->last_time = current_time;
         return;
     }
     
-    double delta = current_time - counter->last_time;
+    double delta = current_time - elements->last_time;
     
     // Update FPS every 0.5 seconds for smoother reading
     if (delta >= 0.5) {
-        counter->fps = (float)(counter->frame_count / delta);
-        counter->frame_time = (float)((delta / counter->frame_count) * 1000.0); // Convert to ms
-        counter->frame_count = 0;
-        counter->last_time = current_time;
+        elements->fps = (float)(elements->frame_count / delta);
+        elements->frame_time = (float)((delta / elements->frame_count) * 1000.0); // Convert to ms
+        elements->frame_count = 0;
+        elements->last_time = current_time;
     }
 }
 
-void gui_render_fps(struct nk_context* ctx, FPSCounter* counter, int window_width, int window_height) {
+void gui_render_debug_elements(struct nk_context* ctx, DebugElements* elements, int window_width, int window_height) {
     (void)window_height; // Unused parameter
     (void)window_width;
     
     // Create a small window in the top-left corner
-    const float width = 150.0f;
-    const float height = 80.0f;
+    const float width = 350.0f;
+    const float height = 110.0f;
     const float padding = 10.0f;
     
     struct nk_rect bounds = nk_rect(
@@ -51,13 +51,18 @@ void gui_render_fps(struct nk_context* ctx, FPSCounter* counter, int window_widt
         
         // Display FPS
         char fps_text[64];
-        snprintf(fps_text, sizeof(fps_text), "FPS: %.1f", counter->fps);
+        snprintf(fps_text, sizeof(fps_text), "FPS: %.1f", elements->fps);
         nk_label(ctx, fps_text, NK_TEXT_LEFT);
         
         // Display frame time
         char frame_time_text[64];
-        snprintf(frame_time_text, sizeof(frame_time_text), "Frame: %.2f ms", counter->frame_time);
+        snprintf(frame_time_text, sizeof(frame_time_text), "Frame: %.2f ms", elements->frame_time);
         nk_label(ctx, frame_time_text, NK_TEXT_LEFT);
+        
+        // Display camera position
+        char camera_position_text[64];
+        snprintf(camera_position_text, sizeof(camera_position_text), "Camera Position: %.2f, %.2f, %.2f", elements->camera_pos_x, elements->camera_pos_y, elements->camera_pos_z);
+        nk_label(ctx, camera_position_text, NK_TEXT_LEFT);
     }
     nk_end(ctx);
 }
