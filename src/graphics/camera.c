@@ -1,7 +1,9 @@
 #include "camera.h"
 #include "../math/math_ops.h"
+#include "../config.h"
 #include <math.h>
 #include <stdbool.h>
+#include <GLFW/glfw3.h>
 
 void camera_init(Camera* camera) {
     camera->pos_x = 0.0f;
@@ -13,6 +15,8 @@ void camera_init(Camera* camera) {
 }
 
 void camera_process_input(Camera* camera, GLFWwindow* window, float dt) {
+
+    
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     
@@ -65,6 +69,27 @@ void camera_process_input(Camera* camera, GLFWwindow* window, float dt) {
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         camera->pos_y -= speed;
     }
+}
+
+void camera_process_mouse(Camera *camera, double x, double y){
+
+    static double last_mouse_x = 0;
+    static double last_mouse_y = 0;
+    
+    float xoffset = (float)(x - last_mouse_x);
+    float yoffset = (float)(last_mouse_y - y);
+    last_mouse_x = x;
+    last_mouse_y = y;
+    
+    xoffset *= CAMERA_SENSITIVITY;
+    yoffset *= CAMERA_SENSITIVITY;
+    
+    camera->yaw += xoffset;
+    camera->pitch += yoffset;
+    
+    // Clamp pitch
+    if (camera->pitch > 89.0f) camera->pitch = 89.0f;
+    if (camera->pitch < -89.0f) camera->pitch = -89.0f;
 }
 
 void camera_update_view(Camera* camera, float* view_matrix) {

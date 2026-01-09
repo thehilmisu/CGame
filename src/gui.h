@@ -8,6 +8,7 @@ typedef struct {
     float frame_time;
     int frame_count;
     float camera_pos_x, camera_pos_y, camera_pos_z;
+    float mouse_pos_x, mouse_pos_y;
     double last_time;
 } DebugElements;
 

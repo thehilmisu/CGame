@@ -1,6 +1,5 @@
 #include "engine.h"
 #include "../window/window.h"
-#include "../graphics/camera.h"
 #include "../graphics/renderer.h"
 #include "../graphics/state.h"
 #include "../world/terrain.h"
@@ -36,7 +35,6 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     (void)window;
     
-    
     if (first_mouse) {
         last_mouse_x = xpos;
         last_mouse_y = ypos;
@@ -44,23 +42,8 @@ static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
         return;
     }
     
-    Camera* camera = glfwGetMonitorUserPointer(window);
-    if (!camera) return;
-    
-    float xoffset = (float)(xpos - last_mouse_x);
-    float yoffset = (float)(last_mouse_y - ypos);
     last_mouse_x = xpos;
     last_mouse_y = ypos;
-    
-    xoffset *= CAMERA_SENSITIVITY;
-    yoffset *= CAMERA_SENSITIVITY;
-    
-    camera->yaw += xoffset;
-    camera->pitch += yoffset;
-    
-    // Clamp pitch
-    if (camera->pitch > 89.0f) camera->pitch = 89.0f;
-    if (camera->pitch < -89.0f) camera->pitch = -89.0f;
 }
 
 
@@ -178,7 +161,13 @@ void engine_run(Engine* engine) {
     while (!window_should_close(engine->window)) {
         double current_time = glfwGetTime();
         float dt = (float)(current_time - engine->last_time);
+
+        // Update Engine Time
         engine->last_time = current_time;
+        
+        // Update Engine mouse position
+        engine->mouse_x = last_mouse_x;
+        engine->mouse_y = last_mouse_y;
         
         // Update Debug Elements
         fps_counter_update(engine->gui_debug_elements, current_time);
@@ -186,9 +175,13 @@ void engine_run(Engine* engine) {
         engine->gui_debug_elements->camera_pos_y = camera->pos_y;
         engine->gui_debug_elements->camera_pos_z = camera->pos_z;
         
+        engine->gui_debug_elements->mouse_pos_x = last_mouse_x;
+        engine->gui_debug_elements->mouse_pos_y = last_mouse_y;
+
         
         // Process input
         camera_process_input(camera, engine->window, dt);
+        camera_process_mouse(camera, engine->mouse_x, engine->mouse_y);
         
         // Clear
         renderer_clear();

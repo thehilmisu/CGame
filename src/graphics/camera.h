@@ -1,8 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+
 #include <GLFW/glfw3.h>
-#include "../config.h"
 
 typedef struct {
     float pos_x, pos_y, pos_z;
@@ -15,6 +15,8 @@ void camera_init(Camera* camera);
 
 // Process keyboard input for camera movement
 void camera_process_input(Camera* camera, GLFWwindow* window, float dt);
+
+void camera_process_mouse(Camera* camera, double x, double y);
 
 // Update view matrix based on camera position and rotation
 void camera_update_view(Camera* camera, float* view_matrix);

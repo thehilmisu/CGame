@@ -33,7 +33,7 @@ void gui_render_debug_elements(struct nk_context* ctx, DebugElements* elements, 
     
     // Create a small window in the top-left corner
     const float width = 350.0f;
-    const float height = 110.0f;
+    const float height = 120.0f;
     const float padding = 10.0f;
     
     struct nk_rect bounds = nk_rect(
@@ -42,7 +42,10 @@ void gui_render_debug_elements(struct nk_context* ctx, DebugElements* elements, 
         width,
         height
     );
-    
+    struct nk_style *s = &ctx->style;
+    // nk_style_push_color(ctx, &s->window.background, nk_rgba(0,0,0,150)); // Fully transparent background
+    nk_style_push_style_item(ctx, &s->window.fixed_background, nk_style_item_color(nk_rgba(0,0,0,150))); // Transparent fixed background
+
     // Create window with minimal decorations
     if (nk_begin(ctx, "FPS Counter", bounds,
                  NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND)) {
@@ -63,6 +66,14 @@ void gui_render_debug_elements(struct nk_context* ctx, DebugElements* elements, 
         char camera_position_text[64];
         snprintf(camera_position_text, sizeof(camera_position_text), "Camera Position: %.2f, %.2f, %.2f", elements->camera_pos_x, elements->camera_pos_y, elements->camera_pos_z);
         nk_label(ctx, camera_position_text, NK_TEXT_LEFT);
+        
+        // Display camera position
+        char mouse_position_text[64];
+        snprintf(mouse_position_text, sizeof(mouse_position_text), "Mouse Position: %.2f, %.2f", elements->mouse_pos_x, elements->mouse_pos_y);
+        nk_label(ctx, mouse_position_text, NK_TEXT_LEFT);
     }
+
+    // nk_style_pop_color(ctx);
+    nk_style_pop_style_item(ctx);
     nk_end(ctx);
 }

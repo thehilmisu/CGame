@@ -37,6 +37,11 @@ typedef struct {
     // Timing
     double last_time;
     bool running;
+
+    // Mouse Position
+    double mouse_x;
+    double mouse_y;
+    
 } Engine;
 
 // Initialize the engine (creates window, loads resources, etc.)
