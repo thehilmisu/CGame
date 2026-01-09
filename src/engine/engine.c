@@ -4,14 +4,20 @@
 #include "../graphics/state.h"
 #include "../graphics/shader.h"
 #include "../world/terrain.h"
+#include "../entities/player.h"
 #include "../gui.h"
 #include "../config.h"
 #include "../file_ops.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
@@ -111,16 +117,26 @@ static void engine_setup_entities(Engine* engine) {
     );
 
     if (player_model) {
-        // Create player entity at a visible position
-        entity_manager_create_entity(
+        // Position player in front of camera based on camera's initial position and yaw
+        // Camera is at (0, CAMERA_INITIAL_Y, 0) with yaw=0 (looking along +Z)
+        // Place player in front of camera (along +Z direction)
+        float forward_distance = 20.0f;  // Distance in front of camera
+        float yaw_rad = engine->camera->yaw * M_PI / 180.0f;
+        float player_x = engine->camera->pos_x + sinf(yaw_rad) * forward_distance;
+        float player_y = CAMERA_INITIAL_Y;  // Same height as camera initially
+        float player_z = engine->camera->pos_z + cosf(yaw_rad) * forward_distance;
+        
+        engine->player = entity_manager_create_entity(
             engine->entity_manager,
             ENTITY_TYPE_PLAYER,
             player_model,
-            (float[]){0.0f, 50.0f, 0.0f},   // position (above terrain)
-            (float[]){0.0f, 0.0f, 0.0f},    // rotation
-            (float[]){1.0f, 1.0f, 1.0f}     // scale (make it bigger)
+            (float[]){player_x, player_y, player_z},   // position in front of camera
+            (float[]){0.0f, engine->camera->yaw, 0.0f},    // rotation matches camera yaw
+            (float[]){1.0f, 1.0f, 1.0f}     // scale
         );
-        printf("Player entity created\n");
+        printf("Player entity created at (%.2f, %.2f, %.2f)\n", player_x, player_y, player_z);
+    } else {
+        engine->player = NULL;
     }
 
     printf("Entity system initialized\n");
@@ -179,7 +195,7 @@ Engine* engine_init(void) {
     window_set_cursor_mode(window, GLFW_CURSOR_DISABLED);
     
     // Setup OpenGL state
-    renderer_set_opengl_state();
+    // renderer_set_opengl_state();
     
     // Setup game world
     engine_setup_world(engine);
@@ -189,6 +205,14 @@ Engine* engine_init(void) {
 
     // Setup entity system
     engine_setup_entities(engine);
+    
+    // Initialize camera to follow player if player exists
+    if (engine->player) {
+        camera_follow_target(engine->camera,
+            engine->player->position[0],
+            engine->player->position[1],
+            engine->player->position[2]);
+    }
 
     return engine;
 }
@@ -216,10 +240,15 @@ void engine_run(Engine* engine) {
         engine->gui_debug_elements->mouse_pos_x = last_mouse_x;
         engine->gui_debug_elements->mouse_pos_y = last_mouse_y;
 
-        
+
         // Process input
-        camera_process_input(camera, engine->window, dt);
-        camera_process_mouse(camera, engine->mouse_x, engine->mouse_y);
+        // Handle escape key to close window
+        if (glfwGetKey(engine->window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(engine->window, true);
+
+        // Process mouse for camera rotation (third-person orbit)
+        // camera_process_mouse(camera, engine->mouse_x, engine->mouse_y);
+
         
         // Clear
         renderer_clear();
@@ -231,6 +260,17 @@ void engine_run(Engine* engine) {
         int width, height;
         window_get_size(engine->window, &width, &height);
         camera_update_projection(camera, width, height, proj_matrix);
+        
+        // Process player movement input
+        if (engine->player) {
+            player_process_input(engine->player, engine->window, dt, camera->yaw);
+
+            // Camera follows player
+            camera_follow_target(camera,
+                engine->player->position[0],
+                engine->player->position[1],
+                engine->player->position[2]);
+        }
         
         // Update terrain - generate new chunks as camera moves (infinite terrain)
         // Pass raw camera world position - the update function calculates chunk positions
@@ -248,7 +288,7 @@ void engine_run(Engine* engine) {
         state_restore_defaults();
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
-        
+
         // Render terrain
         terrain_lod_manager_render(engine->terrain, view_matrix, proj_matrix,
                                    camera->pos_x, camera->pos_y, camera->pos_z,
@@ -272,7 +312,7 @@ void engine_run(Engine* engine) {
         water_render_gl(engine->water, proj_matrix, view_matrix,
                        camera->pos_x, camera->pos_y, camera->pos_z,
                        (float)current_time);
-        
+
         // Restore depth function
         glDepthFunc(GL_LESS);
         state_restore_defaults();

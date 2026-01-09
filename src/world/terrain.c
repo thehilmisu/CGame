@@ -595,6 +595,13 @@ void terrain_lod_manager_render(TerrainLODManagerGL* lod, float* view, float* pr
         
         min_dist = max_dist;
     }
+    
+    // Unbind terrain texture to prevent it from affecting subsequent rendering
+    // (Entities will rebind their own textures, but this ensures clean state)
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    glBindVertexArray(0);
 }
 
 void terrain_lod_manager_cleanup(TerrainLODManagerGL* lod) {

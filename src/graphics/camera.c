@@ -10,65 +10,15 @@ void camera_init(Camera* camera) {
     camera->pos_y = CAMERA_INITIAL_Y;
     camera->pos_z = 0.0f;
     camera->yaw = 0.0f;
-    camera->pitch = 0.0f;
+    camera->pitch = -30.0f;  // Look down slightly for third-person view
     camera->fov = CAMERA_FOV;
-}
 
-void camera_process_input(Camera* camera, GLFWwindow* window, float dt) {
-
-    
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-    
-    // Press R to reset to water level
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-        camera->pos_y = CAMERA_INITIAL_Y;
-    }
-    
-    float speed = CAMERA_SPEED * dt;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-        speed *= INPUT_SPRINT_MULTIPLIER;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
-        speed *= INPUT_SLOW_MULTIPLIER;
-    
-    float yaw_rad = camera->yaw * M_PI / 180.0f;
-    float pitch_rad = camera->pitch * M_PI / 180.0f;
-    
-    // Calculate direction vectors
-    float front_x = cosf(pitch_rad) * cosf(yaw_rad);
-    float front_y = sinf(pitch_rad);
-    float front_z = cosf(pitch_rad) * sinf(yaw_rad);
-    
-    float right_x = cosf(yaw_rad - M_PI / 2.0f);
-    float right_z = sinf(yaw_rad - M_PI / 2.0f);
-    
-    // WASD movement
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera->pos_x += front_x * speed;
-        camera->pos_y += front_y * speed;
-        camera->pos_z += front_z * speed;
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera->pos_x -= front_x * speed;
-        camera->pos_y -= front_y * speed;
-        camera->pos_z -= front_z * speed;
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera->pos_x -= right_x * speed;
-        camera->pos_z -= right_z * speed;
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera->pos_x += right_x * speed;
-        camera->pos_z += right_z * speed;
-    }
-    
-    // Up/Down movement
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        camera->pos_y += speed;
-    }
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        camera->pos_y -= speed;
-    }
+    // Third-person camera settings
+    camera->distance = 25.0f;      // Distance behind player
+    camera->height_offset = 15.0f;   // Height above player
+    camera->target_x = 0.0f;
+    camera->target_y = 0.0f;
+    camera->target_z = 0.0f;
 }
 
 void camera_process_mouse(Camera *camera, double x, double y){
@@ -93,22 +43,107 @@ void camera_process_mouse(Camera *camera, double x, double y){
 }
 
 void camera_update_view(Camera* camera, float* view_matrix) {
-    // View matrix: view = rotate(pitch, X) * rotate(yaw, Y) * translate(-pos)
-    float yaw_rad = camera->yaw * M_PI / 180.0f;
-    float pitch_rad = camera->pitch * M_PI / 180.0f;
+    // For third-person camera following a target, use look-at matrix
+    // Look from camera position towards target position
+    float world_up_x = 0.0f, world_up_y = 1.0f, world_up_z = 0.0f;
     
-    float pitch_mat[16], yaw_mat[16], trans_mat[16];
+    // Calculate forward vector (from camera to target, normalized)
+    float forward_x = camera->target_x - camera->pos_x;
+    float forward_y = camera->target_y - camera->pos_y;
+    float forward_z = camera->target_z - camera->pos_z;
     
-    mat4_rotate_x(pitch_mat, pitch_rad);
-    mat4_rotate_y(yaw_mat, yaw_rad);
-    mat4_translate(trans_mat, -camera->pos_x, -camera->pos_y, -camera->pos_z);
+    // Normalize forward vector
+    float forward_len = sqrtf(forward_x * forward_x + forward_y * forward_y + forward_z * forward_z);
+    if (forward_len < 0.0001f) {
+        // If camera and target are at same position, use default forward
+        forward_x = 0.0f;
+        forward_y = 0.0f;
+        forward_z = -1.0f;
+    } else {
+        forward_x /= forward_len;
+        forward_y /= forward_len;
+        forward_z /= forward_len;
+    }
     
-    // view = pitch * yaw * translate
-    mat4_multiply(view_matrix, pitch_mat, yaw_mat);
-    mat4_multiply(view_matrix, view_matrix, trans_mat);
+    // Calculate right vector: right = forward × world_up
+    float right_x = forward_y * world_up_z - forward_z * world_up_y;
+    float right_y = forward_z * world_up_x - forward_x * world_up_z;
+    float right_z = forward_x * world_up_y - forward_y * world_up_x;
+    
+    // Normalize right vector
+    float right_len = sqrtf(right_x * right_x + right_y * right_y + right_z * right_z);
+    if (right_len < 0.0001f) {
+        // If forward is parallel to world_up, use default right
+        right_x = 1.0f;
+        right_y = 0.0f;
+        right_z = 0.0f;
+    } else {
+        right_x /= right_len;
+        right_y /= right_len;
+        right_z /= right_len;
+    }
+    
+    // Recalculate up vector: up = right × forward
+    float up_x = right_y * forward_z - right_z * forward_y;
+    float up_y = right_z * forward_x - right_x * forward_z;
+    float up_z = right_x * forward_y - right_y * forward_x;
+    
+    // Build look-at view matrix (column-major OpenGL format)
+    // [Rx  Ux  -Fx  -dot(R,pos)]
+    // [Ry  Uy  -Fy  -dot(U,pos)]
+    // [Rz  Uz  -Fz  -dot(-F,pos)]
+    // [0   0   0    1]
+    view_matrix[0] = right_x;
+    view_matrix[1] = right_y;
+    view_matrix[2] = right_z;
+    view_matrix[3] = 0.0f;
+    
+    view_matrix[4] = up_x;
+    view_matrix[5] = up_y;
+    view_matrix[6] = up_z;
+    view_matrix[7] = 0.0f;
+    
+    view_matrix[8] = -forward_x;
+    view_matrix[9] = -forward_y;
+    view_matrix[10] = -forward_z;
+    view_matrix[11] = 0.0f;
+    
+    view_matrix[12] = -(right_x * camera->pos_x + right_y * camera->pos_y + right_z * camera->pos_z);
+    view_matrix[13] = -(up_x * camera->pos_x + up_y * camera->pos_y + up_z * camera->pos_z);
+    view_matrix[14] = -(-forward_x * camera->pos_x + -forward_y * camera->pos_y + -forward_z * camera->pos_z);
+    view_matrix[15] = 1.0f;
 }
 
 void camera_update_projection(Camera* camera, int window_width, int window_height, float* proj_matrix) {
     float aspect = (float)window_width / (float)window_height;
     mat4_perspective(proj_matrix, camera->fov, aspect, CAMERA_NEAR, CAMERA_FAR);
+}
+
+void camera_follow_target(Camera* camera, float target_x, float target_y, float target_z) {
+    // Store target for look-at
+    camera->target_x = target_x;
+    camera->target_y = target_y;
+    camera->target_z = target_z;
+
+    // Calculate camera position behind and above the target
+    // Use camera's yaw and pitch to determine offset direction
+    float yaw_rad = camera->yaw * M_PI / 180.0f;
+    float pitch_rad = camera->pitch * M_PI / 180.0f;
+
+    // Calculate offset: behind the target (opposite of forward direction)
+    // Forward direction is (sin(yaw), 0, cos(yaw))
+    // Behind is the negative of forward
+    float forward_x = sinf(yaw_rad);
+    float forward_z = cosf(yaw_rad);
+    
+    // Camera offset: behind target, adjusted by pitch for height
+    float horizontal_distance = cosf(pitch_rad) * camera->distance;
+    float offset_x = -forward_x * horizontal_distance;
+    float offset_y = camera->height_offset - sinf(pitch_rad) * camera->distance;
+    float offset_z = -forward_z * horizontal_distance;
+
+    // Set camera position
+    camera->pos_x = target_x + offset_x;
+    camera->pos_y = target_y + offset_y;
+    camera->pos_z = target_z + offset_z;
 }

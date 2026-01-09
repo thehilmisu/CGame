@@ -46,7 +46,8 @@ typedef struct {
 
     // Entities
     EntityManager* entity_manager;
-    
+    Entity* player;  // Reference to player entity for camera follow
+
 } Engine;
 
 // Initialize the engine (creates window, loads resources, etc.)

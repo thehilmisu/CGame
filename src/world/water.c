@@ -1,12 +1,14 @@
 #include "water.h"
 #include "../file_ops.h"
 #include "../graphics/shader.h"
+#include "../graphics/texture.h"
 #include "../config.h"
 
 WaterManagerGL water_manager_init(void) {
     WaterManagerGL water;
     water.range = 4;  // Like original waterrange
     water.scale = CHUNK_SZ * 32.0f * SCALE;  // Like original quadscale
+    water.texture = 0;  // Initialize texture to 0
 
     // Create quad mesh (slightly larger to create overlap between instances)
     float quad_vertices[] = {
@@ -47,14 +49,29 @@ WaterManagerGL water_manager_init(void) {
     const char* water_frag = load_shader_source("assets/shaders/waterfrag.glsl"); 
     water.shader = shader_compile(water_vert, water_frag);
     
+    // Load watermaps texture for normal mapping
+    water.texture = texture_load("assets/textures/watermaps.png");
+    if (water.texture == 0) {
+        fprintf(stderr, "Warning: Failed to load watermaps texture\n");
+    }
+    
     return water;
 }
 
 void water_render_gl(WaterManagerGL* water, float* persp, float* view, 
                      float camera_x, float camera_y, float camera_z, float time) {
-    (void)time;  // Unused for now (simple water)
-
     glUseProgram(water->shader);
+
+    // Unbind any textures from entity rendering to prevent them from being used by water shader
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Bind watermaps texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, water->texture);
+    glUniform1i(glGetUniformLocation(water->shader, "watermaps"), 0);
 
     // Uniforms
     glUniformMatrix4fv(glGetUniformLocation(water->shader, "persp"), 1, GL_FALSE, persp);
@@ -75,6 +92,7 @@ void water_render_gl(WaterManagerGL* water, float* persp, float* view,
     glUniform3f(glGetUniformLocation(water->shader, "lightdir"), -0.57735f, -0.57735f, -0.57735f);
     glUniform3f(glGetUniformLocation(water->shader, "camerapos"), camera_x, camera_y, camera_z);
     glUniform1f(glGetUniformLocation(water->shader, "viewdist"), 10000.0f);
+    glUniform1f(glGetUniformLocation(water->shader, "time"), time);
 
     // Draw instanced
     glBindVertexArray(water->vao);
@@ -90,4 +108,7 @@ void water_cleanup_gl(WaterManagerGL* water) {
     glDeleteBuffers(1, &water->vbo);
     glDeleteBuffers(1, &water->ibo);
     glDeleteProgram(water->shader);
+    if (water->texture > 0) {
+        glDeleteTextures(1, &water->texture);
+    }
 }

@@ -46,7 +46,8 @@ SOURCES = $(SRC_DIR)/main.c \
           $(SRC_DIR)/entities/material.c \
           $(SRC_DIR)/entities/model.c \
           $(SRC_DIR)/entities/entity.c \
-          $(SRC_DIR)/entities/entity_manager.c
+          $(SRC_DIR)/entities/entity_manager.c \
+          $(SRC_DIR)/entities/player.c
 
 # Object files
 OBJECTS = $(BUILD_DIR)/main.o \
@@ -71,7 +72,8 @@ OBJECTS = $(BUILD_DIR)/main.o \
           $(BUILD_DIR)/entities/material.o \
           $(BUILD_DIR)/entities/model.o \
           $(BUILD_DIR)/entities/entity.o \
-          $(BUILD_DIR)/entities/entity_manager.o
+          $(BUILD_DIR)/entities/entity_manager.o \
+          $(BUILD_DIR)/entities/player.o
 
 # Default target
 all: $(TARGET)

@@ -73,9 +73,11 @@ void main()
 	float d = length(fragpos - camerapos);
 
 	float range = max(abs(fragpos.x - center.x), abs(fragpos.z - center.y));
-	//We discard fragments that are beyond a certain range to prevent overlap
-	//with terrain of lower level of detail
-	if(range > maxrange || range < minrange)
+
+	// Discard fragments outside the range, but with a small epsilon to avoid z-fighting
+	if(maxrange > 0.0 && range > maxrange + 0.1)
+		discard;
+	if(minrange > 0.0 && range < minrange - 0.1)
 		discard;
 
 	color = getcolor() * lighting;

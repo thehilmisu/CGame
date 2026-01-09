@@ -103,6 +103,12 @@ void entity_render(Entity* entity, GLuint shader, float* view, float* proj,
         glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
     }
 
+    // Unbind textures to prevent them from affecting subsequent rendering
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
     glBindVertexArray(0);
 }
 
