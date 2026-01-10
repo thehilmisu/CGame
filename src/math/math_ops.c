@@ -74,3 +74,7 @@ void mat4_perspective(float* m, float fov_degrees, float aspect, float near, flo
     m[11] = -1.0f;
     m[14] = (2.0f * far * near) / (near - far);
 }
+
+float lerp(float start, float end, float t) {
+    return start + (end - start) * t;
+}

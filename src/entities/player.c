@@ -1,5 +1,7 @@
 #include "player.h"
 #include <math.h>
+#include "../math/math_ops.h"
+
 
 void player_process_input(Entity* player, GLFWwindow* window, float dt) {
     if (!player) return;
@@ -13,26 +15,38 @@ void player_process_input(Entity* player, GLFWwindow* window, float dt) {
     float move_x = 0.0f;
     float move_z = 0.0f;
 
+    float rotation_speed = 3.0f;
 
+    float target_rotation = 0.0f;
+    float target_rotation_x = 0.0f;
+    // Always move to -Z direction
+    move_z -= right_z;
+    
     // WASD movement relative to camera direction
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         move_z -= right_z;
+        target_rotation_x = 1.0f;
+        player->position[1] -= speed;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         move_z += right_z;
+        target_rotation_x = -1.0f;
+        player->position[1] += speed;
     }
+
+
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         move_x += forward_x;
-        player->rotation[2] -= 0.01f;
-        if(player->rotation[2] <=-1.0f) player->rotation[2] = -1.0f;
-    }
-    else if(glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE){
-         player->rotation[2] += 0.01f;
-         if(player->rotation[2] >=0.0f) player->rotation[2] = 0.0f;
+        target_rotation = -1.0f;  // Bank left
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         move_x -= forward_x;
+        target_rotation = 1.0f;   // Bank right
     }
+
+    // Smoothly interpolate current rotation towards target rotation
+    player->rotation[2] = lerp(player->rotation[2], target_rotation, rotation_speed * dt);
+    player->rotation[0] = lerp(player->rotation[0], target_rotation_x,  dt);
 
     // Normalize movement vector if moving diagonally
     float move_length = sqrtf(move_x * move_x + move_z * move_z);
@@ -43,17 +57,6 @@ void player_process_input(Entity* player, GLFWwindow* window, float dt) {
         // Update player position
         player->position[0] += move_x * speed;
         player->position[2] += move_z * speed;
-    }
-
-    // Player rotation matches camera yaw (always faces forward relative to camera)
-    // player->rotation[1] = camera_yaw;
-
-    // Vertical movement (for flying, can be removed for ground-based movement)
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        player->position[1] += speed;
-    }
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        player->position[1] -= speed;
     }
 }
 

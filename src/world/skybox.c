@@ -148,7 +148,11 @@ void skybox_render(SkyboxGL* skybox, float* persp, float* view) {
     glBindVertexArray(skybox->vao);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-    
+
+    // Unbind cubemap texture to prevent interference with subsequent 2D texture rendering
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
     // Restore state
     glDepthFunc(GL_LESS);
     glCullFace(GL_BACK);

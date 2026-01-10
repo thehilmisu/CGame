@@ -250,34 +250,10 @@ void engine_run(Engine* engine) {
         if (glfwGetKey(engine->window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(engine->window, true);
 
-        // Process mouse for camera rotation (third-person orbit)
-        // camera_process_mouse(camera, engine->mouse_x, engine->mouse_y);
-
-        
         // Clear
         renderer_clear();
-        
-        // Update camera matrices
-        float view_matrix[16], proj_matrix[16];
-        camera_update_view(camera, view_matrix);
-        
-        int width, height;
-        window_get_size(engine->window, &width, &height);
-        camera_update_projection(camera, width, height, proj_matrix);
-        
-        
-#ifdef DEBUG_MODE
-        camera->yaw = engine->gui_debug_elements->camera_yaw;
-        camera->pos_x = engine->gui_debug_elements->cam_pos_x;
-        camera->pos_y = engine->gui_debug_elements->cam_pos_y;
-        camera->pos_z = engine->gui_debug_elements->cam_pos_z;
-        camera->pitch = engine->gui_debug_elements->cam_pitch;
-        engine->player->rotation[0] = engine->gui_debug_elements->player_rotation_x;
-        engine->player->rotation[1] = engine->gui_debug_elements->player_rotation_y;
-        engine->player->rotation[2] = engine->gui_debug_elements->player_rotation_z;
-#endif   
 
-        // Process player movement input
+        // Process player movement input FIRST (before camera matrices)
         if (engine->player) {
             player_process_input(engine->player, engine->window, dt);
 
@@ -287,6 +263,29 @@ void engine_run(Engine* engine) {
                 engine->player->position[1],
                 engine->player->position[2]);
         }
+
+#ifdef DEBUG_MODE
+        // In debug mode, allow GUI to override player rotation only (not camera position)
+        // Camera follows player automatically, but we can still control player rotation from GUI
+        // engine->player->rotation[0] = engine->gui_debug_elements->player_rotation_x;
+        // engine->player->rotation[1] = engine->gui_debug_elements->player_rotation_y;
+        // engine->player->rotation[2] = engine->gui_debug_elements->player_rotation_z;
+
+        // Update GUI to show current camera state (for debugging display)
+        engine->gui_debug_elements->cam_pos_x = camera->pos_x;
+        engine->gui_debug_elements->cam_pos_y = camera->pos_y;
+        engine->gui_debug_elements->cam_pos_z = camera->pos_z;
+        engine->gui_debug_elements->cam_pitch = camera->pitch;
+        engine->gui_debug_elements->camera_yaw = camera->yaw;
+#endif
+
+        // Update camera matrices AFTER player movement and camera follow
+        float view_matrix[16], proj_matrix[16];
+        camera_update_view(camera, view_matrix);
+
+        int width, height;
+        window_get_size(engine->window, &width, &height);
+        camera_update_projection(camera, width, height, proj_matrix);
         
         // Update terrain - generate new chunks as camera moves (infinite terrain)
         // Pass raw camera world position - the update function calculates chunk positions
@@ -296,43 +295,39 @@ void engine_run(Engine* engine) {
         if (engine->entity_manager) {
             entity_manager_update(engine->entity_manager, dt);
         }
- 
-        // Render skybox first
-        state_restore_defaults();
-        skybox_render(engine->skybox, proj_matrix, view_matrix);
-        
-        // Restore OpenGL state for terrain
+
+
+        // 1. Render terrain first (with clean state)
         state_restore_defaults();
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
 
-        // Render terrain
         terrain_lod_manager_render(engine->terrain, view_matrix, proj_matrix,
                                    camera->pos_x, camera->pos_y, camera->pos_z,
                                    (float)current_time);
 
-        // Render entities (opaque objects)
+        // 2. Render entities (opaque objects)
         if (engine->entity_manager) {
             state_restore_defaults();
             entity_manager_render(engine->entity_manager, view_matrix, proj_matrix,
                                 camera->pos_x, camera->pos_y, camera->pos_z);
         }
 
-        // Render water with transparency
+        // 3. Render water with transparency
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         state_enable_blend();
         state_set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         state_set_depth_mask(GL_FALSE);
         state_disable_cull_face();
-        
+
         water_render_gl(engine->water, proj_matrix, view_matrix,
                        camera->pos_x, camera->pos_y, camera->pos_z,
                        (float)current_time);
 
-        // Restore depth function
-        glDepthFunc(GL_LESS);
+        // 4. Render skybox LAST (so it doesn't affect other rendering)
         state_restore_defaults();
+        skybox_render(engine->skybox, proj_matrix, view_matrix);
         
         // Render GUI
         nk_glfw3_new_frame(&engine->nk_glfw);

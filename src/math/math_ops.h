@@ -31,4 +31,7 @@ void mat4_scale(float* m, float sx, float sy, float sz);
 // Create perspective projection matrix
 void mat4_perspective(float* m, float fov_degrees, float aspect, float near, float far);
 
+// Standard lerp function
+float lerp(float start, float end, float t);
+
 #endif // MATHOPS_H
