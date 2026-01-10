@@ -239,16 +239,20 @@ void engine_run(Engine* engine) {
 #ifdef DEBUG_MODE
         // Update Debug Elements
         fps_counter_update(engine->gui_debug_elements, current_time);
-        // engine->gui_debug_elements->camera_pos_x = camera->pos_x;
-        // engine->gui_debug_elements->camera_pos_y = camera->pos_y;
-        // engine->gui_debug_elements->camera_pos_z = camera->pos_z;
+        engine->gui_debug_elements->camera_pos_x = camera->pos_x;
+        engine->gui_debug_elements->camera_pos_y = camera->pos_y;
+        engine->gui_debug_elements->camera_pos_z = camera->pos_z;
         
-        // engine->gui_debug_elements->mouse_pos_x = last_mouse_x;
-        // engine->gui_debug_elements->mouse_pos_y = last_mouse_y;
+        engine->gui_debug_elements->mouse_pos_x = last_mouse_x;
+        engine->gui_debug_elements->mouse_pos_y = last_mouse_y;
         
         engine->gui_debug_elements->player_pos_x = engine->player->position[0];
         engine->gui_debug_elements->player_pos_y = engine->player->position[1];
         engine->gui_debug_elements->player_pos_z = engine->player->position[2];
+
+        engine->gui_debug_elements->entity_count = engine->entity_manager->entity_count;
+
+        // if (engine->gui_debug_elements->is_place_tree_click) printf("Clicked!\n");
 #endif
 
         // Process input

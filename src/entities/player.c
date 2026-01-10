@@ -21,7 +21,7 @@ void player_process_input(Entity* player, GLFWwindow* window, float dt) {
     float target_rotation = 0.0f;
     float target_rotation_x = 0.0f;
     // Always move to -Z direction
-    move_z -= right_z;
+    // move_z -= right_z;
     
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         move_z -= right_z;

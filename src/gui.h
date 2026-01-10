@@ -2,6 +2,7 @@
 #define GUI_H
 
 #include <nuklear/nuklear.h>
+#include <stdbool.h>
 
 typedef struct {
     float fps;
@@ -11,6 +12,7 @@ typedef struct {
     float player_pos_x, player_pos_y, player_pos_z;
     float mouse_pos_x, mouse_pos_y;
     double last_time;
+    unsigned int entity_count;
 
     // debug setting camera from gui
     float camera_yaw;
@@ -23,6 +25,10 @@ typedef struct {
     float player_rotation_x;
     float player_rotation_y;
     float player_rotation_z;
+
+
+    // gui button click events
+    bool is_place_tree_click;
 } DebugElements;
 
 // Initialize the FPS counter

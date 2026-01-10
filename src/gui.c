@@ -35,7 +35,7 @@ void gui_render_debug_elements(struct nk_context* ctx, DebugElements* elements, 
     const float width = 350.0f;
     const float height = 1000.0f;
     const float padding = 10.0f;
-    
+    elements->is_place_tree_click = false;
     struct nk_rect bounds = nk_rect(
         padding,
         padding,
@@ -56,6 +56,10 @@ void gui_render_debug_elements(struct nk_context* ctx, DebugElements* elements, 
         char fps_text[64];
         snprintf(fps_text, sizeof(fps_text), "FPS: %.1f", elements->fps);
         nk_label(ctx, fps_text, NK_TEXT_LEFT);
+        
+        char entity_count_text[64];
+        snprintf(entity_count_text, sizeof(entity_count_text), "Entity Count: %d", elements->entity_count);
+        nk_label(ctx, entity_count_text, NK_TEXT_LEFT);
         
         // Display frame time
         char frame_time_text[64];
@@ -104,6 +108,10 @@ void gui_render_debug_elements(struct nk_context* ctx, DebugElements* elements, 
         snprintf(temp_text, sizeof(temp_text), "Player Rotation Z: %.2f", elements->player_rotation_z);
         nk_label(ctx, temp_text, NK_TEXT_LEFT);
         nk_slider_float(ctx, -1.0f, &elements->player_rotation_z, 1.0f, 0.1f);
+
+        if(nk_button_label(ctx, "Place Tree")) {
+            elements->is_place_tree_click = true;
+        }
 
 
         // printf("%s --- %s\n", camera_position_text, player_position_text);

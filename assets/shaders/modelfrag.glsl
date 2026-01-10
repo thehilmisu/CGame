@@ -25,27 +25,24 @@ void main() {
     vec3 normal = normalize(fragNormal);
     vec3 viewDir = normalize(camerapos - fragPos);
 
-    // Diffuse lighting
-    float diff = max(dot(normal, -lightdir), 0.0);
-    vec3 diffuse = diff * material_diffuse;
+    // Base color from material (ensure minimum brightness)
+    vec3 baseColor = max(material_diffuse, vec3(0.5));
+    
+    // Apply texture if available
     if (has_diffuse_map == 1) {
-        diffuse *= texture(diffuse_map, fragTexCoord).rgb;
+        vec4 texColor = texture(diffuse_map, fragTexCoord);
+        if (texColor.a > 0.01) {
+            baseColor = texColor.rgb;
+        }
     }
 
-    // Specular lighting
-    vec3 reflectDir = reflect(lightdir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material_shininess);
-    vec3 specular = spec * material_specular;
-    if (has_specular_map == 1) {
-        specular *= texture(specular_map, fragTexCoord).rgb;
-    }
-
-    // Ambient lighting
-    vec3 ambient = material_ambient * 0.3;
-    if (has_diffuse_map == 1) {
-        ambient *= texture(diffuse_map, fragTexCoord).rgb;
-    }
-
+    // Simple lighting: high ambient + diffuse
+    float diff = abs(dot(normal, -lightdir));
+    float lighting = 0.5 + 0.5 * diff; // 50% ambient, 50% diffuse
+    
+    // Ensure minimum brightness
+    vec3 finalColor = max(baseColor * lighting, vec3(0.1));
+    
     // Final color
-    color = vec4(ambient + diffuse + specular, 1.0);
+    color = vec4(finalColor, 1.0);
 }
