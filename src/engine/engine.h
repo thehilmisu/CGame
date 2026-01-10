@@ -18,6 +18,7 @@
 #include "../graphics/camera.h"
 #include "../gui.h"
 #include "../world/terrain.h"
+#include "../world/tree_placement.h"
 #include "../entities/entity_manager.h"
 #include <stdbool.h>
 
@@ -47,6 +48,9 @@ typedef struct {
     // Entities
     EntityManager* entity_manager;
     Entity* player;  // Reference to player entity for camera follow
+
+    // Tree placement
+    TreePlacementManager* tree_placement;
 
 } Engine;
 

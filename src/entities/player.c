@@ -1,6 +1,7 @@
 #include "player.h"
 #include <math.h>
 #include "../math/math_ops.h"
+#include <stdio.h>
 
 
 void player_process_input(Entity* player, GLFWwindow* window, float dt) {
@@ -22,26 +23,25 @@ void player_process_input(Entity* player, GLFWwindow* window, float dt) {
     // Always move to -Z direction
     move_z -= right_z;
     
-    // WASD movement relative to camera direction
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         move_z -= right_z;
-        target_rotation_x = 1.0f;
+        target_rotation_x = 0.5f;
         player->position[1] -= speed;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         move_z += right_z;
-        target_rotation_x = -1.0f;
+        target_rotation_x = -0.5f;
         player->position[1] += speed;
     }
 
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         move_x += forward_x;
-        target_rotation = -1.0f;  // Bank left
+        target_rotation = -1.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         move_x -= forward_x;
-        target_rotation = 1.0f;   // Bank right
+        target_rotation = 1.0f;
     }
 
     // Smoothly interpolate current rotation towards target rotation
@@ -60,14 +60,3 @@ void player_process_input(Entity* player, GLFWwindow* window, float dt) {
     }
 }
 
-void player_get_forward(Entity* player, float* out_x, float* out_z) {
-    if (!player) {
-        *out_x = 0.0f;
-        *out_z = 0.0f;
-        return;
-    }
-
-    float yaw_rad = player->rotation[1] * M_PI / 180.0f;
-    *out_x = cosf(yaw_rad);
-    *out_z = sinf(yaw_rad);
-}

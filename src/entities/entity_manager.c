@@ -86,8 +86,6 @@ Entity* entity_manager_create_entity(EntityManager* manager, EntityType type,
     // Free the temporary entity (we copied it)
     free(entity);
 
-    printf("Entity created: ID=%u, Type=%d\n", stored_entity->id, stored_entity->type);
-
     return stored_entity;
 }
 

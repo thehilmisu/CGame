@@ -43,6 +43,9 @@ SOURCES = $(SRC_DIR)/main.c \
           $(SRC_DIR)/world/terrain.c \
           $(SRC_DIR)/world/water.c \
           $(SRC_DIR)/world/skybox.c \
+          $(SRC_DIR)/world/mesh_utils.c \
+          $(SRC_DIR)/world/trees.c \
+          $(SRC_DIR)/world/tree_placement.c \
           $(SRC_DIR)/entities/material.c \
           $(SRC_DIR)/entities/model.c \
           $(SRC_DIR)/entities/entity.c \
@@ -69,6 +72,9 @@ OBJECTS = $(BUILD_DIR)/main.o \
           $(BUILD_DIR)/world/terrain.o \
           $(BUILD_DIR)/world/water.o \
           $(BUILD_DIR)/world/skybox.o \
+          $(BUILD_DIR)/world/mesh_utils.o \
+          $(BUILD_DIR)/world/trees.o \
+          $(BUILD_DIR)/world/tree_placement.o \
           $(BUILD_DIR)/entities/material.o \
           $(BUILD_DIR)/entities/model.o \
           $(BUILD_DIR)/entities/entity.o \

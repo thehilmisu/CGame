@@ -4,6 +4,7 @@
 #include "../graphics/state.h"
 #include "../graphics/shader.h"
 #include "../world/terrain.h"
+#include "../world/trees.h"
 #include "../entities/player.h"
 #include "../gui.h"
 #include "../config.h"
@@ -204,7 +205,12 @@ Engine* engine_init(void) {
 
     // Setup entity system
     engine_setup_entities(engine);
-    
+
+    // Setup tree placement system (using OBJ model)
+    printf("Initializing tree placement system...\n");
+    int tree_seed = rand();
+    engine->tree_placement = tree_placement_create(engine->entity_manager, engine->seed, tree_seed);
+
     // Initialize camera to follow player if player exists
     if (engine->player) {
         camera_follow_target(engine->camera,
@@ -233,12 +239,12 @@ void engine_run(Engine* engine) {
 #ifdef DEBUG_MODE
         // Update Debug Elements
         fps_counter_update(engine->gui_debug_elements, current_time);
-        engine->gui_debug_elements->camera_pos_x = camera->pos_x;
-        engine->gui_debug_elements->camera_pos_y = camera->pos_y;
-        engine->gui_debug_elements->camera_pos_z = camera->pos_z;
+        // engine->gui_debug_elements->camera_pos_x = camera->pos_x;
+        // engine->gui_debug_elements->camera_pos_y = camera->pos_y;
+        // engine->gui_debug_elements->camera_pos_z = camera->pos_z;
         
-        engine->gui_debug_elements->mouse_pos_x = last_mouse_x;
-        engine->gui_debug_elements->mouse_pos_y = last_mouse_y;
+        // engine->gui_debug_elements->mouse_pos_x = last_mouse_x;
+        // engine->gui_debug_elements->mouse_pos_y = last_mouse_y;
         
         engine->gui_debug_elements->player_pos_x = engine->player->position[0];
         engine->gui_debug_elements->player_pos_y = engine->player->position[1];
@@ -272,11 +278,11 @@ void engine_run(Engine* engine) {
         // engine->player->rotation[2] = engine->gui_debug_elements->player_rotation_z;
 
         // Update GUI to show current camera state (for debugging display)
-        engine->gui_debug_elements->cam_pos_x = camera->pos_x;
-        engine->gui_debug_elements->cam_pos_y = camera->pos_y;
-        engine->gui_debug_elements->cam_pos_z = camera->pos_z;
-        engine->gui_debug_elements->cam_pitch = camera->pitch;
-        engine->gui_debug_elements->camera_yaw = camera->yaw;
+        // engine->gui_debug_elements->cam_pos_x = camera->pos_x;
+        // engine->gui_debug_elements->cam_pos_y = camera->pos_y;
+        // engine->gui_debug_elements->cam_pos_z = camera->pos_z;
+        // engine->gui_debug_elements->cam_pitch = camera->pitch;
+        // engine->gui_debug_elements->camera_yaw = camera->yaw;
 #endif
 
         // Update camera matrices AFTER player movement and camera follow
@@ -290,6 +296,11 @@ void engine_run(Engine* engine) {
         // Update terrain - generate new chunks as camera moves (infinite terrain)
         // Pass raw camera world position - the update function calculates chunk positions
         terrain_lod_manager_update(engine->terrain, engine->seed, camera->pos_x, camera->pos_z);
+
+        // Update tree placement - spawn trees based on camera position
+        if (engine->tree_placement) {
+            tree_placement_update(engine->tree_placement, camera->pos_x, camera->pos_z);
+        }
 
        // Update entities
         if (engine->entity_manager) {
@@ -349,6 +360,9 @@ void engine_cleanup(Engine* engine) {
     printf("\nCleaning up...\n");
 
     // Cleanup entities
+    if (engine->tree_placement) {
+        tree_placement_cleanup(engine->tree_placement);
+    }
     if (engine->entity_manager) {
         entity_manager_cleanup(engine->entity_manager);
     }
