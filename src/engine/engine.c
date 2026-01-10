@@ -121,17 +121,15 @@ static void engine_setup_entities(Engine* engine) {
         // Camera is at (0, CAMERA_INITIAL_Y, 0) with yaw=0 (looking along +Z)
         // Place player in front of camera (along +Z direction)
         float forward_distance = 30.0f;  // Distance in front of camera
-        float yaw_rad = engine->camera->yaw * M_PI / 180.0f;
-        printf("camera y : %f\n", yaw_rad);
-        float player_x = engine->camera->pos_x + sinf(yaw_rad) * forward_distance;
+        float player_x = engine->camera->pos_x + forward_distance;
         float player_y = CAMERA_INITIAL_Y;  // Same height as camera initially
-        float player_z = engine->camera->pos_z + cosf(yaw_rad) * forward_distance;
+        float player_z = engine->camera->pos_z + forward_distance;
         
         engine->player = entity_manager_create_entity(
             engine->entity_manager,
             ENTITY_TYPE_PLAYER,
             player_model,
-            (float[]){player_x, player_y, player_z},   // position in front of camera
+            (float[]){player_x, player_y, player_z},// position in front of camera
             (float[]){0.0f, 0.0f, 0.0f},    // rotation
             (float[]){0.5f, 0.5f, 0.5f}     // scale
         );
@@ -232,6 +230,7 @@ void engine_run(Engine* engine) {
         engine->mouse_x = last_mouse_x;
         engine->mouse_y = last_mouse_y;
         
+#ifdef DEBUG_MODE
         // Update Debug Elements
         fps_counter_update(engine->gui_debug_elements, current_time);
         engine->gui_debug_elements->camera_pos_x = camera->pos_x;
@@ -244,7 +243,7 @@ void engine_run(Engine* engine) {
         engine->gui_debug_elements->player_pos_x = engine->player->position[0];
         engine->gui_debug_elements->player_pos_y = engine->player->position[1];
         engine->gui_debug_elements->player_pos_z = engine->player->position[2];
-
+#endif
 
         // Process input
         // Handle escape key to close window
@@ -266,7 +265,8 @@ void engine_run(Engine* engine) {
         window_get_size(engine->window, &width, &height);
         camera_update_projection(camera, width, height, proj_matrix);
         
-        // printf("Camera yaw setted : %f \n", engine->gui_debug_elements->camera_yaw);
+        
+#ifdef DEBUG_MODE
         camera->yaw = engine->gui_debug_elements->camera_yaw;
         camera->pos_x = engine->gui_debug_elements->cam_pos_x;
         camera->pos_y = engine->gui_debug_elements->cam_pos_y;
@@ -275,11 +275,11 @@ void engine_run(Engine* engine) {
         engine->player->rotation[0] = engine->gui_debug_elements->player_rotation_x;
         engine->player->rotation[1] = engine->gui_debug_elements->player_rotation_y;
         engine->player->rotation[2] = engine->gui_debug_elements->player_rotation_z;
-        
+#endif   
 
         // Process player movement input
         if (engine->player) {
-            player_process_input(engine->player, engine->window, dt, 0.0f);
+            player_process_input(engine->player, engine->window, dt);
 
             // Camera follows player
             camera_follow_target(camera,
@@ -336,13 +336,13 @@ void engine_run(Engine* engine) {
         
         // Render GUI
         nk_glfw3_new_frame(&engine->nk_glfw);
-        
+#ifdef DEBUG_MODE      
         window_get_size(engine->window, &width, &height);
         gui_render_debug_elements(&engine->nk_glfw.ctx, engine->gui_debug_elements, width, height);
         
         nk_glfw3_render(&engine->nk_glfw, NK_ANTI_ALIASING_ON,
                        MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
-        
+#endif
         state_restore_defaults();
         
         glfwSwapBuffers(engine->window);

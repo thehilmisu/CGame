@@ -79,38 +79,31 @@ void gui_render_debug_elements(struct nk_context* ctx, DebugElements* elements, 
 
         //Camera Yaw slider
         // nk_spacing(ctx, 1);
-        nk_label(ctx, "Camera Yaw", NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.0f, &elements->camera_yaw, 100.0f, 1.0f);
-
-        nk_label(ctx, "Camera X", NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.0f, &elements->cam_pos_x, 100.0f, 1.0f);
-
-        nk_label(ctx, "Camera Y", NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.0f, &elements->cam_pos_y, 100.0f, 1.0f);
-
-        nk_label(ctx, "Camera Z", NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.0f, &elements->cam_pos_z, 100.0f, 1.0f);
+        char temp_text[64];
+        snprintf(temp_text, sizeof(temp_text), "Camera Yaw: %.2f", elements->camera_yaw);
+        nk_label(ctx, temp_text, NK_TEXT_LEFT);
+        nk_slider_float(ctx, -100.0f, &elements->camera_yaw, 100.0f, 1.0f);
         
-        nk_label(ctx, "Camera Pitch", NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.0f, &elements->cam_pitch, 100.0f, 1.0f);
+        snprintf(temp_text, sizeof(temp_text), "Camera Pitch: %.2f", elements->cam_pitch);
+        nk_label(ctx, temp_text, NK_TEXT_LEFT);
+        nk_slider_float(ctx, -100.0f, &elements->cam_pitch, 100.0f, 1.0f);
 
         // Player Rotation Sliders
         // nk_spacing(ctx, 1);
-        char position_text[64];
-        snprintf(position_text, sizeof(position_text), "Player Rotation X: %.2f", elements->player_rotation_x);
-        nk_label(ctx, position_text, NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.0f, &elements->player_rotation_x, 1.0f, 0.1f);
+        snprintf(temp_text, sizeof(temp_text), "Player Rotation X: %.2f", elements->player_rotation_x);
+        nk_label(ctx, temp_text, NK_TEXT_LEFT);
+        nk_slider_float(ctx, -1.0f, &elements->player_rotation_x, 1.0f, 0.1f);
 
         
         // nk_spacing(ctx, 1);
-        snprintf(position_text, sizeof(position_text), "Player Rotation Y: %.2f", elements->player_rotation_y);
-        nk_label(ctx, position_text, NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.0f, &elements->player_rotation_y, 360.0f, 1.0f);
+        snprintf(temp_text, sizeof(temp_text), "Player Rotation Y: %.2f", elements->player_rotation_y);
+        nk_label(ctx, temp_text, NK_TEXT_LEFT);
+        nk_slider_float(ctx, -1.0f, &elements->player_rotation_y, 1.0f, 0.1f);
 
         // nk_spacing(ctx, 1);
-        snprintf(position_text, sizeof(position_text), "Player Rotation Z: %.2f", elements->player_rotation_z);
-        nk_label(ctx, position_text, NK_TEXT_LEFT);
-        nk_slider_float(ctx, 0.0f, &elements->player_rotation_z, 360.0f, 1.0f);
+        snprintf(temp_text, sizeof(temp_text), "Player Rotation Z: %.2f", elements->player_rotation_z);
+        nk_label(ctx, temp_text, NK_TEXT_LEFT);
+        nk_slider_float(ctx, -1.0f, &elements->player_rotation_z, 1.0f, 0.1f);
 
 
         // printf("%s --- %s\n", camera_position_text, player_position_text);

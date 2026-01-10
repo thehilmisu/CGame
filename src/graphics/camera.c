@@ -10,7 +10,7 @@ void camera_init(Camera* camera) {
     camera->pos_y = CAMERA_INITIAL_Y;
     camera->pos_z = 0.0f;
     camera->yaw = 0.0f;
-    camera->pitch = -30.0f;  // Look down slightly for third-person view
+    camera->pitch = 12.0f;
     camera->fov = CAMERA_FOV;
 
     // Third-person camera settings

@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -std=c99
+CFLAGS = -Wall -Wextra -O2 -std=c99 -DDEBUG_MODE
 SRC_DIR = src
 BUILD_DIR = build
 TARGET = Game

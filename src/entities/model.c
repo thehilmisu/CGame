@@ -114,6 +114,9 @@ Model* model_load(const char* obj_path) {
 
             if (mtl->map_Ks > 0 && mtl->map_Ks < obj->texture_count) {
                 fastObjTexture* tex = &obj->textures[mtl->map_Ks];
+                printf("   Ks texture: name='%s', path='%s'\n",
+                                       tex->name ? tex->name : "NULL",
+                                       tex->path ? tex->path : "NULL");
                 if (tex->path) {
                     char* path = resolve_texture_path(tex->path, "assets/textures/");
                     mat->specular_map = texture_load(path);
@@ -122,6 +125,9 @@ Model* model_load(const char* obj_path) {
 
             if (mtl->map_bump > 0 && mtl->map_bump < obj->texture_count) {
                 fastObjTexture* tex = &obj->textures[mtl->map_bump];
+                printf("  BUMP texture: name='%s', path='%s'\n",
+                                       tex->name ? tex->name : "NULL",
+                                       tex->path ? tex->path : "NULL");
                 if (tex->path) {
                     char* path = resolve_texture_path(tex->path, "assets/textures/");
                     mat->normal_map = texture_load(path);
@@ -130,6 +136,9 @@ Model* model_load(const char* obj_path) {
 
             if (mtl->map_d > 0 && mtl->map_d < obj->texture_count) {
                 fastObjTexture* tex = &obj->textures[mtl->map_d];
+                printf("  d texture: name='%s', path='%s'\n",
+                                                       tex->name ? tex->name : "NULL",
+                                                       tex->path ? tex->path : "NULL");
                 if (tex->path) {
                     char* path = resolve_texture_path(tex->path, "assets/textures/");
                     mat->alpha_map = texture_load(path);

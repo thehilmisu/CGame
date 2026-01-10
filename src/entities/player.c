@@ -1,23 +1,14 @@
 #include "player.h"
 #include <math.h>
 
-void player_process_input(Entity* player, GLFWwindow* window, float dt, float camera_yaw) {
+void player_process_input(Entity* player, GLFWwindow* window, float dt) {
     if (!player) return;
 
     float speed = PLAYER_SPEED * dt;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-        speed *= PLAYER_SPRINT_MULTIPLIER;
-    }
-
-    // Use camera yaw for movement direction (move relative to camera view)
-    float yaw_rad = camera_yaw * M_PI / 180.0f;
 
     // Calculate forward and right vectors based on camera yaw (not pitch)
-    float forward_x = cosf(yaw_rad);
-    float forward_z = sinf(yaw_rad);
-
-    float right_x = cosf(yaw_rad - M_PI / 2.0f);
-    float right_z = sinf(yaw_rad - M_PI / 2.0f);
+    float forward_x = cosf(0);
+    float right_z = sinf(0 - M_PI / 2.0f);
 
     float move_x = 0.0f;
     float move_z = 0.0f;
@@ -25,20 +16,22 @@ void player_process_input(Entity* player, GLFWwindow* window, float dt, float ca
 
     // WASD movement relative to camera direction
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        move_x -= right_x;
         move_z -= right_z;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        move_x += right_x;
         move_z += right_z;
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         move_x += forward_x;
-        move_z += forward_z;
+        player->rotation[2] -= 0.01f;
+        if(player->rotation[2] <=-1.0f) player->rotation[2] = -1.0f;
+    }
+    else if(glfwGetKey(window, GLFW_KEY_A) == GLFW_RELEASE){
+         player->rotation[2] += 0.01f;
+         if(player->rotation[2] >=0.0f) player->rotation[2] = 0.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         move_x -= forward_x;
-        move_z -= forward_z;
     }
 
     // Normalize movement vector if moving diagonally
