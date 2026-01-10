@@ -8,8 +8,21 @@ typedef struct {
     float frame_time;
     int frame_count;
     float camera_pos_x, camera_pos_y, camera_pos_z;
+    float player_pos_x, player_pos_y, player_pos_z;
     float mouse_pos_x, mouse_pos_y;
     double last_time;
+
+    // debug setting camera from gui
+    float camera_yaw;
+    float cam_pos_x;
+    float cam_pos_y;
+    float cam_pos_z;
+    float cam_pitch;
+
+    // debug setting for player
+    float player_rotation_x;
+    float player_rotation_y;
+    float player_rotation_z;
 } DebugElements;
 
 // Initialize the FPS counter

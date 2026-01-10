@@ -25,20 +25,20 @@ void player_process_input(Entity* player, GLFWwindow* window, float dt, float ca
 
     // WASD movement relative to camera direction
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        move_x += forward_x;
-        move_z += forward_z;
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        move_x -= forward_x;
-        move_z -= forward_z;
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         move_x -= right_x;
         move_z -= right_z;
     }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         move_x += right_x;
         move_z += right_z;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        move_x += forward_x;
+        move_z += forward_z;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        move_x -= forward_x;
+        move_z -= forward_z;
     }
 
     // Normalize movement vector if moving diagonally
@@ -53,7 +53,7 @@ void player_process_input(Entity* player, GLFWwindow* window, float dt, float ca
     }
 
     // Player rotation matches camera yaw (always faces forward relative to camera)
-    player->rotation[1] = camera_yaw;
+    // player->rotation[1] = camera_yaw;
 
     // Vertical movement (for flying, can be removed for ground-based movement)
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {

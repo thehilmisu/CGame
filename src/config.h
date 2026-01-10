@@ -2,9 +2,9 @@
 #define CONFIG_H
 
 // Window settings
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
-#define WINDOW_TITLE "Terrain Generation"
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
+#define WINDOW_TITLE "Game"
 
 // Nuklear buffer sizes
 #define MAX_VERTEX_BUFFER (512 * 1024)
@@ -16,7 +16,7 @@
 #define CAMERA_FOV 75.0f
 #define CAMERA_NEAR 0.1f
 #define CAMERA_FAR 10000.0f
-#define CAMERA_INITIAL_Y 10.0f
+#define CAMERA_INITIAL_Y 50.0f
 
 // Input settings
 #define INPUT_SPRINT_MULTIPLIER 5.0f
